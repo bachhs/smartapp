@@ -59,7 +59,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   color: Theme.of(context).primaryColor,
                 ),
                 onPressed: () {
-                  task.status = 0;
+                  task.status = "0";
                   DatabaseHelper.instance.updateTask(task);
                   // Toast.show("Task reassigned", textStyle: context,
                   //     );

@@ -1,16 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'home_screen.dart';
 import 'package:intl/intl.dart';
-import 'package:toast/toast.dart';
 
 class AddTaskScreen extends StatefulWidget {
   final Function updateTaskList;
   final Task task;
-  int countId = 0;
 
   AddTaskScreen({this.updateTaskList, this.task});
 
@@ -28,11 +25,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   Future<List<Task>> task_id;
   @override
   void initState() {
-    super.initState();
     Firebase.initializeApp().whenComplete(() {
       print("completed");
       setState(() {});
     });
+    super.initState();
+
     if (widget.task != null) {
       _title = widget.task.title;
       _date = widget.task.date;
@@ -64,7 +62,11 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
   }
 
   _delete() {
-    DatabaseHelper.instance.deleteTask(widget.task.id);
+    //DatabaseHelper.instance.deleteTask(widget.task.id);
+    var collection = FirebaseFirestore.instance.collection('phone');
+    collection
+        .doc(widget.task.id) // <-- Doc ID to be deleted.
+        .delete();
     Navigator.pop(context);
     widget.updateTaskList();
     // Toast.show(
@@ -97,8 +99,9 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       Task task = Task(title: _title, date: _date, priority: _priority);
       if (widget.task == null) {
         // Insert the task to our user's database
-        task.status = 0;
-        DatabaseHelper.instance.insertTask(task);
+        task.status = "0";
+        //DatabaseHelper.instance.insertTask(task);
+        sendDataFireStore(task);
         // Toast.show(
         //   "New Task Added",
         //   textStyle: context,
@@ -107,7 +110,8 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         // Update the task
         task.id = widget.task.id;
         task.status = widget.task.status;
-        DatabaseHelper.instance.updateTask(task);
+        updateDataFireStore(task.id, task);
+        //DatabaseHelper.instance.updateTask(task);
         // Toast.show(
         //   "Task Updated",
         //   textStyle: context,
@@ -116,20 +120,25 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
 
       Navigator.push(context, MaterialPageRoute(builder: (_) => HomeScreen()));
       widget.updateTaskList();
-      sendDataFireStore(task);
     }
   }
 
+  // Update ddataa JSON
+  void updateDataFireStore(String idSelect, Task task) async {
+    final docUser = FirebaseFirestore.instance.collection('phone');
+    docUser.doc(idSelect).update(task.toMap());
+  }
+
   void sendDataFireStore(Task task) async {
-    CollectionReference users = FirebaseFirestore.instance.collection('phone');
+    String unique_id = UniqueKey().toString();
     Map<String, String> todoList = {
-      "id": task.id.toString(),
+      "id": unique_id,
       "title": task.title,
       "date": task.date.toString(),
       "priority": task.priority,
-      "status": task.status.toString(),
+      "status": task.status,
     };
-    users.add(todoList);
+    FirebaseFirestore.instance.collection('phone').doc(unique_id).set(todoList);
   }
 
   @override

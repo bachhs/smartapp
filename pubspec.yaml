@@ -37,6 +37,8 @@ dependencies:
   firebase_core: ^2.7.0
   firebase_database: ^10.0.14
   cloud_firestore: ^4.4.3
+  flutter_barcode_scanner: ^2.0.0
+  connectivity: ^3.0.6
  
   
 

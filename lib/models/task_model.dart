@@ -1,9 +1,9 @@
 class Task {
-  int id;
+  String id;
   String title;
   DateTime date;
   String priority;
-  int status; // 0 - Incomplete, 1 - Complete
+  String status; // 0 - Incomplete, 1 - Complete
 
   Task({this.title, this.date, this.priority, this.status, int id});
 
