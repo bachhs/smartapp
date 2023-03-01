@@ -27,6 +27,7 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Task> data = [];
   String totalPriority = "";
   String _scanBarcode = 'Unknown';
+  DateTime _selectedDate = DateTime.now();
 
   final String url =
       "https://gist.githubusercontent.com/thangleuet/d981ae220775be66e9366b743ad012a6/raw/f220c0574e2a9aee904b04c2fa263c43e1f7d663/smartHome";
@@ -40,9 +41,23 @@ class _HomeScreenState extends State<HomeScreen> {
     _updateTaskList();
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime(2021),
+      lastDate: DateTime(2100),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+    _updateTaskList();
+  }
+
   Future<List<Task>> getDataJsonfireStore() async {
     List<Task> taskList = [];
-
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('phone');
     // Get docs from collection reference
@@ -51,18 +66,22 @@ class _HomeScreenState extends State<HomeScreen> {
     final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
     for (var document in allData) {
       Task task = Task.fromMap(document);
-      taskList.add(task);
+      int resultday = _selectedDate.day.compareTo(task.date.day);
+      int resultmonth = _selectedDate.month.compareTo(task.date.month);
+      int resultyear = _selectedDate.year.compareTo(task.date.year);
+      if (resultday == 0 && resultmonth == 0 && resultyear == 0)
+        taskList.add(task);
     }
     // Check task_list is empty or not
 
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
-    for (var i = 0; i < data.length; i++) {
-      // add the data to the _taskList
-      _taskList.then((value) => value.add(data[i]));
-      // Sort the _taskList
-      _taskList.then((value) =>
-          value.sort((taskA, taskB) => taskA.date.compareTo(taskB.date)));
-    }
+    // for (var i = 0; i < data.length; i++) {
+    //   // add the data to the _taskList
+    //   _taskList.then((value) => value.add(data[i]));
+    //   // Sort the _taskList
+    //   _taskList.then((value) =>
+    //       value.sort((taskA, taskB) => taskA.date.compareTo(taskB.date)));
+    // }
     return taskList;
   }
 
@@ -134,7 +153,6 @@ class _HomeScreenState extends State<HomeScreen> {
       _updateTaskList();
     });
   }
-  
 
   Widget _buildTask(Task task) {
     return Card(
@@ -145,21 +163,24 @@ class _HomeScreenState extends State<HomeScreen> {
           title: Text(
             task.title,
             style: TextStyle(
-              fontSize: 25.0,
-              fontWeight: FontWeight.bold,
-            ),
+                color: Colors.blueAccent,
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Raleway'),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              SizedBox(width: 10),
               Text(
-                'Price: ${task.priority}',
+                'Giá: ${task.priority}',
                 style: TextStyle(
                   fontSize: 16.0,
-                  color: Colors.black,
+                  color: Colors.redAccent,
                   // Head line
                 ),
               ),
+              SizedBox(width: 10),
               Text(
                 '${_dateFormatter.format(task.date)}',
                 style: TextStyle(
@@ -174,13 +195,35 @@ class _HomeScreenState extends State<HomeScreen> {
               Icons.delete,
               color: Colors.red,
             ),
-            onPressed: () async {
-              await deleteTask(task);
+            onPressed: () {
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      content: Text("Bạn có đồng ý xóa phụ kiện này?"),
+                      actions: [
+                        TextButton(
+                          child: Text("Cancel"),
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        TextButton(
+                          child: Text("Delete"),
+                          onPressed: () async {
+                            await deleteTask(task);
+                            _updateTaskList();
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                      ],
+                    );
+                  });
+
               // Toast.show(
               //   "Task Removed",
               //   textStyle: context,
               // );
-              _updateTaskList();
             },
             // activeColor: Theme.of(context).primaryColor,
             // value: task.status == 1 ? true : false,
@@ -222,29 +265,38 @@ class _HomeScreenState extends State<HomeScreen> {
           leading: IconButton(
               icon: Icon(
                 Icons.phone_android,
-                color: Colors.greenAccent,
+                color: Colors.green,
               ),
               onPressed: null),
           title: Text(
-            "List Accessories",
+            "Phụ kiện",
             style: TextStyle(
-              color: Colors.blueAccent,
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.5,
-            ),
+                color: Colors.green,
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+                //letterSpacing: -0.7,
+                fontFamily: 'Audiowide'),
           ),
           centerTitle: false,
           elevation: 0,
           actions: [
+            // Container(
+            //   margin: const EdgeInsets.all(0),
+            //   child: IconButton(
+            //     icon: Icon(Icons.history_outlined),
+            //     iconSize: 25.0,
+            //     color: Colors.black,
+            //     onPressed: () => Navigator.push(context,
+            //         MaterialPageRoute(builder: (_) => HistoryScreen())),
+            //   ),
+            // ),
             Container(
-              margin: const EdgeInsets.all(0),
+              margin: const EdgeInsets.all(6.0),
               child: IconButton(
-                icon: Icon(Icons.history_outlined),
+                icon: Icon(Icons.qr_code_scanner),
                 iconSize: 25.0,
                 color: Colors.black,
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => HistoryScreen())),
+                onPressed: () => scanQR(),
               ),
             ),
             Container(
@@ -257,15 +309,6 @@ class _HomeScreenState extends State<HomeScreen> {
                     MaterialPageRoute(builder: (_) => SettingsScreen())),
               ),
             ),
-            Container(
-              margin: const EdgeInsets.all(6.0),
-              child: IconButton(
-                icon: Icon(Icons.qr_code_scanner),
-                iconSize: 25.0,
-                color: Colors.black,
-                onPressed: () => scanQR(),
-              ),
-            )
           ],
         ),
         body: FutureBuilder(
@@ -282,12 +325,20 @@ class _HomeScreenState extends State<HomeScreen> {
                 .where((Task task) => task.status == 0)
                 .toList()
                 .length;
+
             // Sum of all the priority
             if (list_data.length == 0)
               totalPriority = "0";
             else
               totalPriority = list_data.reduce((value, element) =>
                   (int.parse(value) + int.parse(element)).toString());
+
+            final filteredTasks = snapshot.data
+                .where((task) =>
+                    task.date.year == _selectedDate.year &&
+                    task.date.month == _selectedDate.month &&
+                    task.date.day == _selectedDate.day)
+                .toList();
 
             return RefreshIndicator(
               child: ListView.builder(
@@ -301,6 +352,25 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
+                          GestureDetector(
+                            onTap: () => _selectDate(context),
+                            child: Row(
+                              children: [
+                                Icon(Icons.calendar_today, color: Colors.grey),
+                                SizedBox(width: 10),
+                                Text(
+                                  DateFormat('EEE, MMM d, y')
+                                      .format(_selectedDate),
+                                  style: TextStyle(
+                                    fontSize: 18.0,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                SizedBox(width: 10),
+                              ],
+                            ),
+                          ),
                           Container(
                             margin:
                                 const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
@@ -316,7 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 'Tổng tiền: ${totalPriority} \n Số lượng: ${snapshot.data.length}',
                                 style: TextStyle(
                                   color: Colors.blueGrey,
-                                  fontSize: 15.0,
+                                  fontSize: 16.0,
                                   fontWeight: FontWeight.normal,
                                 ),
                               ),

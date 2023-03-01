@@ -20,6 +20,10 @@ version: 3.0.0+3
 environment:
   sdk: ">=2.7.0 <3.0.0"
 
+fonts:
+  - family: Audiowide
+    fonts:
+      - asset: lib/asset/fonts/Audiowide-Regular.ttf
 dependencies:
   flutter:
     sdk: flutter

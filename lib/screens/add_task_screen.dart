@@ -153,7 +153,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
             ),
             onPressed: () => Navigator.pop(context)),
         title: Text(
-          widget.task == null ? 'Add Task' : 'Update Task',
+          widget.task == null ? 'Thêm phụ kiện' : 'Sửa phụ kiện',
           style: TextStyle(
             color: Colors.black,
             fontSize: 20.0,
@@ -169,8 +169,18 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
           child: Container(
             padding: EdgeInsets.symmetric(horizontal: 40.0, vertical: 40.0),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: <Widget>[
+                Padding(
+                  padding: EdgeInsets.only(bottom: 30.0),
+                  child: IconButton(
+                    icon: Icon(
+                      Icons.phone_android_outlined,
+                      color: Colors.greenAccent,
+                      size: 60,
+                    ),
+                  ),
+                ),
                 Form(
                   key: _formKey,
                   child: Column(
@@ -195,6 +205,24 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                       Padding(
                         padding: EdgeInsets.symmetric(vertical: 20.0),
                         child: TextFormField(
+                          keyboardType: TextInputType.number,
+                          style: TextStyle(fontSize: 18.0),
+                          decoration: InputDecoration(
+                            labelText: 'Giá',
+                            labelStyle: TextStyle(fontSize: 18.0),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10.0),
+                            ),
+                          ),
+                          validator: (input) =>
+                              input.trim().isEmpty ? 'Nhập giá phụ kiện' : null,
+                          onSaved: (input) => _priority = input,
+                          initialValue: _priority,
+                        ),
+                      ),
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 20.0),
+                        child: TextFormField(
                           readOnly: true,
                           controller: _dateController,
                           style: TextStyle(fontSize: 18.0),
@@ -208,25 +236,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                           ),
                         ),
                       ),
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 20.0),
-                        child: TextFormField(
-                          keyboardType: TextInputType.number,
-                          style: TextStyle(fontSize: 18.0),
-                          decoration: InputDecoration(
-                            labelText: 'Price',
-                            labelStyle: TextStyle(fontSize: 18.0),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                            ),
-                          ),
-                          validator: (input) => input.trim().isEmpty
-                              ? 'Please enter a price'
-                              : null,
-                          onSaved: (input) => _priority = input,
-                          initialValue: _priority,
-                        ),
-                      ),
                       SizedBox(height: 20.0),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -235,7 +244,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                             heroTag: 'save_button',
                             shape: StadiumBorder(),
                             label: Text(
-                              widget.task == null ? 'Add' : 'Update',
+                              widget.task == null ? 'Thêm' : 'Sửa',
                               style: TextStyle(
                                 color: Colors.white,
                                 fontSize: 20.0,
@@ -249,7 +258,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                                   heroTag: 'delete_button',
                                   shape: StadiumBorder(),
                                   label: Text(
-                                    'Delete',
+                                    'Xóa',
                                     style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 20.0,
