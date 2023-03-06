@@ -1,60 +1,67 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:task_manager/helpers/database_helper.dart';
+import 'package:task_manager/screens/home.dart';
 import 'home_screen.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 
 class qrScan extends StatefulWidget {
+  final String name_shop;
+  final String current_email;
+  qrScan(this.name_shop, this.current_email);
   @override
   _qrScanState createState() => _qrScanState();
 }
 
-showAlertDialog(BuildContext context) async {
-  // set up the buttons
-  // ignore: deprecated_member_use
-  Widget cancelButton = FloatingActionButton(
-    child: Text("Cancel"),
-    onPressed: () {
-      Navigator.pop(context);
-    },
-  );
-  // ignore: deprecated_member_use
-  Widget continueButton = FloatingActionButton(
-    child: Text("OK"),
-    onPressed: () {
-      DatabaseHelper.instance.deleteAllTask();
-      // Toast.show("All data cleared", textStyle: context,
-      //   );
-      Navigator.push(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-    },
-  );
-
-  // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    content: Text("Would you like to clear all data? It cannot be undone."),
-    actions: [
-      cancelButton,
-      continueButton,
-    ],
-  );
-
-  // show the dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
-}
-
-Future<void> startBarcodeScanStream() async {
-  FlutterBarcodeScanner.getBarcodeStreamReceiver(
-          '#ff6666', 'Cancel', true, ScanMode.BARCODE)
-      .listen((barcode) => print(barcode));
-}
-
 class _qrScanState extends State<qrScan> {
   String _scanBarcode = 'Unknown';
+
+  showAlertDialog(BuildContext context) async {
+    // set up the buttons
+    // ignore: deprecated_member_use
+    Widget cancelButton = FloatingActionButton(
+      child: Text("Cancel"),
+      onPressed: () {
+        Navigator.pop(context);
+      },
+    );
+    // ignore: deprecated_member_use
+    Widget continueButton = FloatingActionButton(
+      child: Text("OK"),
+      onPressed: () {
+        DatabaseHelper.instance.deleteAllTask();
+        // Toast.show("All data cleared", textStyle: context,
+        //   );
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (_) => Home(widget.current_email, widget.name_shop)));
+      },
+    );
+
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      content: Text("Would you like to clear all data? It cannot be undone."),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Future<void> startBarcodeScanStream() async {
+    FlutterBarcodeScanner.getBarcodeStreamReceiver(
+            '#ff6666', 'Cancel', true, ScanMode.BARCODE)
+        .listen((barcode) => print(barcode));
+  }
 
   Future<void> scanQR() async {
     String barcodeScanRes;

@@ -2,12 +2,28 @@ class Task {
   String id;
   String title;
   DateTime date;
-  String priority;
+  String price;
   String status; // 0 - Incomplete, 1 - Complete
+  String shop;
+  String tprice;
 
-  Task({this.title, this.date, this.priority, this.status, int id});
+  Task(
+      {this.title,
+      this.date,
+      this.price,
+      this.status,
+      this.id,
+      this.shop,
+      this.tprice});
 
-  Task.withId({this.id, this.title, this.date, this.priority, this.status});
+  Task.withId(
+      {this.id,
+      this.title,
+      this.date,
+      this.price,
+      this.status,
+      this.shop,
+      this.tprice});
 
   Map<String, dynamic> toMap() {
     final map = Map<String, dynamic>();
@@ -16,8 +32,10 @@ class Task {
     }
     map['title'] = title;
     map['date'] = date.toIso8601String();
-    map['priority'] = priority;
+    map['price'] = price;
     map['status'] = status;
+    map['shop'] = shop;
+    map['tprice'] = tprice;
     return map;
   }
 
@@ -26,8 +44,10 @@ class Task {
       id: map['id'],
       title: map['title'],
       date: DateTime.parse(map['date']),
-      priority: map['priority'],
+      price: map['price'],
       status: map['status'],
+      shop: map['shop'],
+      tprice: map['tprice'],
     );
   }
 }

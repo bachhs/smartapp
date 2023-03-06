@@ -1,12 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:task_manager/models/shop_model.dart';
 // import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
-import 'history_screen.dart';
+import 'package:task_manager/screens/navigator_draw.dart';
 import 'package:task_manager/screens/add_task_screen.dart';
 import 'package:intl/intl.dart';
-import 'settings_screen.dart';
+import 'package:task_manager/screens/settings_screen.dart';
 import 'qr_scan.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:connectivity/connectivity.dart';
@@ -14,18 +15,27 @@ import 'package:connectivity/connectivity.dart';
 import 'dart:async';
 
 class HomeScreen extends StatefulWidget {
+  // final String current_email;
+  final String name_shop;
+  final String current_email;
+  final String current_role;
+  HomeScreen(this.name_shop, this.current_email, this.current_role);
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
   Future<List<Task>> _taskList;
+  Future<List<Shop>> _shopList;
+  Future<List<String>> _shopNameList;
+  Future<List<String>> _shopIdList;
   String title = "";
   List<String> todos = <String>[];
   TextEditingController controller = TextEditingController();
   final DateFormat _dateFormatter = DateFormat('MMM dd, yyyy hh:mm a');
   List<Task> data = [];
   String totalPriority = "";
+  String total1 = "";
   String _scanBarcode = 'Unknown';
   DateTime _selectedDate = DateTime.now();
 
@@ -69,20 +79,34 @@ class _HomeScreenState extends State<HomeScreen> {
       int resultday = _selectedDate.day.compareTo(task.date.day);
       int resultmonth = _selectedDate.month.compareTo(task.date.month);
       int resultyear = _selectedDate.year.compareTo(task.date.year);
-      if (resultday == 0 && resultmonth == 0 && resultyear == 0)
-        taskList.add(task);
+      if (resultday == 0 &&
+          resultmonth == 0 &&
+          resultyear == 0 &&
+          task.shop == widget.name_shop) taskList.add(task);
     }
     // Check task_list is empty or not
-
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
-    // for (var i = 0; i < data.length; i++) {
-    //   // add the data to the _taskList
-    //   _taskList.then((value) => value.add(data[i]));
-    //   // Sort the _taskList
-    //   _taskList.then((value) =>
-    //       value.sort((taskA, taskB) => taskA.date.compareTo(taskB.date)));
-    // }
     return taskList;
+  }
+
+  // Get number shop
+  Future<List<Shop>> getShopfireStore() async {
+    List<Shop> shopList = [];
+    List<String> shopNameList = [];
+    List<String> shopIdList = [];
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('shop');
+    // Get docs from collection reference
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    // Get data from docs and convert map to List
+    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    for (var document in allData) {
+      Shop shop = Shop.fromMap(document);
+      shopNameList.add(shop.name);
+      shopIdList.add(shop.id);
+      shopList.add(shop);
+    }
+    return shopList;
   }
 
   void deleteTask(Task task) async {
@@ -94,6 +118,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _updateTaskList() {
     setState(() {
+      _shopList = getShopfireStore();
       _taskList = getDataJsonfireStore();
       for (var i = 0; i < data.length; i++) {
         // add the data to the _taskList
@@ -120,7 +145,7 @@ class _HomeScreenState extends State<HomeScreen> {
       "id": unique_id,
       "title": task.title,
       "date": task.date.toString(),
-      "priority": task.priority,
+      "price": task.price,
       "status": task.status,
     };
     FirebaseFirestore.instance.collection('phone').doc(unique_id).set(todoList);
@@ -147,8 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
       var parts = _scanBarcode.split(':');
       var _title = parts[0].trim();
       var _priority = parts[1].trim();
-      Task task =
-          Task(title: _title, date: DateTime.now(), priority: _priority);
+      Task task = Task(title: _title, date: DateTime.now(), price: _priority);
       sendDataFireStore(task);
       _updateTaskList();
     });
@@ -156,36 +180,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildTask(Task task) {
     return Card(
-      margin: EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+      elevation: 10,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: Padding(
-        padding: EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
         child: ListTile(
           title: Text(
             task.title,
             style: TextStyle(
-                color: Colors.blueAccent,
-                fontSize: 25.0,
+                color: Colors.black,
+                fontSize: 17.0,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'Raleway'),
           ),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SizedBox(width: 10),
+              SizedBox(width: 5),
               Text(
-                'Giá: ${task.priority}',
+                'Giá: ${task.price}.000đ',
                 style: TextStyle(
-                  fontSize: 16.0,
-                  color: Colors.redAccent,
+                  fontSize: 14.0,
+                  color: Colors.deepOrange,
                   // Head line
                 ),
               ),
-              SizedBox(width: 10),
+              SizedBox(width: 5),
               Text(
                 '${_dateFormatter.format(task.date)}',
                 style: TextStyle(
                   fontSize: 14.0,
-                  color: Colors.grey,
+                  color: Colors.blueGrey,
                 ),
               ),
             ],
@@ -225,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
               //   textStyle: context,
               // );
             },
-            // activeColor: Theme.of(context).primaryColor,
+
             // value: task.status == 1 ? true : false,
           ),
           onTap: () => Navigator.push(
@@ -234,6 +261,8 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (_) => AddTaskScreen(
                 updateTaskList: _updateTaskList,
                 task: task,
+                name_shop: widget.name_shop,
+                current_email: widget.current_email,
               ),
             ),
           ),
@@ -244,166 +273,214 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: onBackPressed,
-      child: Scaffold(
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          child: Icon(Icons.add_outlined),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddTaskScreen(
-                updateTaskList: _updateTaskList,
-              ),
+    return Scaffold(
+      //drawer: MyDrawer(),
+      floatingActionButton: FloatingActionButton(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        child: Icon(Icons.add_outlined),
+        onPressed: () => Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => AddTaskScreen(
+              updateTaskList: _updateTaskList,
+              name_shop: widget.name_shop,
+              current_email: widget.current_email,
             ),
           ),
-        ),
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          leading: IconButton(
-              icon: Icon(
-                Icons.phone_android,
-                color: Colors.green,
-              ),
-              onPressed: null),
-          title: Text(
-            "Phụ kiện",
-            style: TextStyle(
-                color: Colors.green,
-                fontSize: 25.0,
-                fontWeight: FontWeight.bold,
-                //letterSpacing: -0.7,
-                fontFamily: 'Audiowide'),
-          ),
-          centerTitle: false,
-          elevation: 0,
-          actions: [
-            // Container(
-            //   margin: const EdgeInsets.all(0),
-            //   child: IconButton(
-            //     icon: Icon(Icons.history_outlined),
-            //     iconSize: 25.0,
-            //     color: Colors.black,
-            //     onPressed: () => Navigator.push(context,
-            //         MaterialPageRoute(builder: (_) => HistoryScreen())),
-            //   ),
-            // ),
-            Container(
-              margin: const EdgeInsets.all(6.0),
-              child: IconButton(
-                icon: Icon(Icons.qr_code_scanner),
-                iconSize: 25.0,
-                color: Colors.black,
-                onPressed: () => scanQR(),
-              ),
-            ),
-            Container(
-              margin: const EdgeInsets.all(6.0),
-              child: IconButton(
-                icon: Icon(Icons.settings_outlined),
-                iconSize: 25.0,
-                color: Colors.black,
-                onPressed: () => Navigator.push(context,
-                    MaterialPageRoute(builder: (_) => SettingsScreen())),
-              ),
-            ),
-          ],
-        ),
-        body: FutureBuilder(
-          future: _taskList,
-          builder: (context, snapshot) {
-            if (!snapshot.hasData) {
-              return Center(
-                child: CircularProgressIndicator(),
-              );
-            }
-            final list_data =
-                snapshot.data.map((Task task) => task.priority).toList();
-            final int completedTaskCount = snapshot.data
-                .where((Task task) => task.status == 0)
-                .toList()
-                .length;
-
-            // Sum of all the priority
-            if (list_data.length == 0)
-              totalPriority = "0";
-            else
-              totalPriority = list_data.reduce((value, element) =>
-                  (int.parse(value) + int.parse(element)).toString());
-
-            final filteredTasks = snapshot.data
-                .where((task) =>
-                    task.date.year == _selectedDate.year &&
-                    task.date.month == _selectedDate.month &&
-                    task.date.day == _selectedDate.day)
-                .toList();
-
-            return RefreshIndicator(
-              child: ListView.builder(
-                padding: EdgeInsets.symmetric(vertical: 0.0),
-                itemCount: 1 + snapshot.data.length,
-                itemBuilder: (BuildContext context, int index) {
-                  if (index == 0) {
-                    return Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          GestureDetector(
-                            onTap: () => _selectDate(context),
-                            child: Row(
-                              children: [
-                                Icon(Icons.calendar_today, color: Colors.grey),
-                                SizedBox(width: 10),
-                                Text(
-                                  DateFormat('EEE, MMM d, y')
-                                      .format(_selectedDate),
-                                  style: TextStyle(
-                                    fontSize: 18.0,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                                SizedBox(width: 10),
-                              ],
-                            ),
-                          ),
-                          Container(
-                            margin:
-                                const EdgeInsets.fromLTRB(20.0, 0.0, 20.0, 0.0),
-                            padding: const EdgeInsets.all(10.0),
-                            decoration: new BoxDecoration(
-                              shape: BoxShape.rectangle,
-                              color: Color.fromRGBO(240, 240, 240, 1.0),
-                              borderRadius:
-                                  BorderRadius.all(Radius.circular(10.0)),
-                            ),
-                            child: Center(
-                              child: Text(
-                                'Tổng tiền: ${totalPriority} \n Số lượng: ${snapshot.data.length}',
-                                style: TextStyle(
-                                  color: Colors.blueGrey,
-                                  fontSize: 16.0,
-                                  fontWeight: FontWeight.normal,
-                                ),
-                              ),
-                            ),
-                          )
-                        ],
-                      ),
-                    );
-                  }
-                  return _buildTask(snapshot.data[index - 1]);
-                },
-              ),
-              onRefresh: _pullRefresh,
-            );
-          },
         ),
       ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        leading: IconButton(
+            icon: Icon(
+              Icons.phone_android,
+              color: Colors.green,
+            ),
+            onPressed: null),
+        title: Text(
+          "Home",
+          style: TextStyle(
+              color: Colors.green,
+              fontSize: 25.0,
+              fontWeight: FontWeight.bold,
+              letterSpacing: -0.7,
+              fontFamily: 'Audiowide'),
+        ),
+        centerTitle: false,
+        elevation: 0,
+        actions: [
+          // Container(
+          //   margin: const EdgeInsets.all(0),
+          //   child: IconButton(
+          //     icon: Icon(Icons.history_outlined),
+          //     iconSize: 25.0,
+          //     color: Colors.black,
+          //     onPressed: () => Navigator.push(context,
+          //         MaterialPageRoute(builder: (_) => HistoryScreen())),
+          //   ),
+          // ),
+          Container(
+            margin: const EdgeInsets.all(7.0),
+            child: IconButton(
+              icon: Icon(Icons.qr_code_scanner),
+              iconSize: 25.0,
+              color: Colors.black,
+              onPressed: () => scanQR(),
+            ),
+          ),
+          Container(
+            margin: const EdgeInsets.all(7.0),
+            child: IconButton(
+              icon: Icon(Icons.settings_outlined),
+              iconSize: 25.0,
+              color: Colors.black,
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => SettingsScreen(
+                          widget.name_shop, widget.current_email))),
+            ),
+          ),
+        ],
+      ),
+      body: FutureBuilder(
+        future: _taskList,
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+          final list_data =
+              snapshot.data.map((Task task) => task.price).toList();
+          final int completedTaskCount = snapshot.data
+              .where((Task task) => task.status == 0)
+              .toList()
+              .length;
+
+          // Sum of all the priority
+          if (list_data.length == 0)
+            totalPriority = "0";
+          else
+            totalPriority = list_data.reduce((value, element) =>
+                (int.parse(value) + int.parse(element)).toString());
+
+          if (list_data.length == 0)
+            total1 = "0";
+          else
+            total1 = snapshot.data
+                .map((Task task) => task.tprice)
+                .toList()
+                .reduce((value, element) =>
+                    (int.parse(value) + int.parse(element)).toString());
+          // rae = task.price - task.tprice;
+          final int rate = int.parse(totalPriority) - int.parse(total1);
+
+          final filteredTasks = snapshot.data
+              .where((task) =>
+                  task.date.year == _selectedDate.year &&
+                  task.date.month == _selectedDate.month &&
+                  task.date.day == _selectedDate.day)
+              .toList();
+
+          return RefreshIndicator(
+            child: ListView.builder(
+              padding: EdgeInsets.symmetric(vertical: 0.0),
+              itemCount: 1 + snapshot.data.length,
+              itemBuilder: (BuildContext context, int index) {
+                if (index == 0) {
+                  return Padding(
+                    padding:
+                        EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        GestureDetector(
+                          onTap: () => _selectDate(context),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today,
+                                  color: Colors.blueGrey),
+                              SizedBox(width: 10),
+                              Text(
+                                DateFormat('EEE, MMM d, y')
+                                    .format(_selectedDate),
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          margin:
+                              const EdgeInsets.fromLTRB(20.0, 3.0, 20.0, 3.0),
+                          padding: const EdgeInsets.all(10.0),
+                          decoration: new BoxDecoration(
+                            shape: BoxShape.rectangle,
+                            color: Color.fromRGBO(230, 230, 230, 1.0),
+                            borderRadius:
+                                BorderRadius.all(Radius.circular(10.0)),
+                          ),
+                          child: ListTile(
+                            title: Text(
+                              'Số lượng: ${snapshot.data.length}',
+                              style: TextStyle(
+                                color: Colors.blueGrey,
+                                fontSize: 16.0,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: widget.current_role == "admin"
+                                ? Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Tổng thu: ${totalPriority}.000đ',
+                                        style: TextStyle(
+                                          color: Colors.blueGrey,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Tổng chi: ${total1}.000đ',
+                                        style: TextStyle(
+                                          color: Colors.blueGrey,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                      Text(
+                                        'Lãi: ${rate}.000đ',
+                                        style: TextStyle(
+                                          color: Colors.blueGrey,
+                                          fontSize: 16.0,
+                                          fontWeight: FontWeight.normal,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                : null,
+                          ),
+                        )
+                      ],
+                    ),
+                  );
+                }
+                return _buildTask(snapshot.data[index - 1]);
+              },
+            ),
+            onRefresh: _pullRefresh,
+          );
+        },
+      ),
+      drawer: MyDrawer(),
     );
   }
 }

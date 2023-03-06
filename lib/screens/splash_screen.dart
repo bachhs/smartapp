@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
+import 'package:task_manager/models/user_model.dart';
 import 'home_screen.dart';
+import 'login.dart';
 
 class Splash extends StatefulWidget {
   @override
@@ -12,6 +12,8 @@ class Splash extends StatefulWidget {
 }
 
 class _SplashState extends State<Splash> {
+  UserModel user =
+      UserModel(email: "", password: "", role: "", name: "", id: "");
   @override
   // ignore: must_call_super
   void initState() {
@@ -19,7 +21,7 @@ class _SplashState extends State<Splash> {
     Timer(
         Duration(seconds: 1),
         () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => HomeScreen())));
+            context, MaterialPageRoute(builder: (_) => Login(user))));
   }
 
   Widget build(BuildContext context) {
@@ -28,7 +30,12 @@ class _SplashState extends State<Splash> {
         fit: StackFit.expand,
         children: <Widget>[
           Container(
-            decoration: BoxDecoration(color: Colors.white),
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10),
+                gradient: LinearGradient(colors: [
+                  Color.fromRGBO(143, 148, 251, 1),
+                  Color.fromRGBO(143, 148, 251, .6),
+                ])),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: <Widget>[
@@ -52,10 +59,10 @@ class _SplashState extends State<Splash> {
                           padding: EdgeInsets.only(top: 20.0),
                         ),
                         Text(
-                          "Danh sách phụ kiện",
+                          "Cửa hàng phụ kiện",
                           style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 20.0,
+                            color: Colors.white,
+                            fontSize: 30.0,
                           ),
                         ),
                       ],

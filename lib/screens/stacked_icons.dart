@@ -13,8 +13,8 @@ class StakedIcons extends StatelessWidget {
               borderRadius: new BorderRadius.circular(20.0),
               color: Colors.white),
           child: new Icon(
-            Icons.check_rounded,
-            color: Color(0xFF18D191),
+            Icons.phone_android,
+            color: Color.fromRGBO(143, 148, 251, .6),
             size: 50.0,
           ),
         ),

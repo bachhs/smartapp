@@ -1,54 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:task_manager/helpers/database_helper.dart';
+import 'package:task_manager/models/shop_model.dart';
+import 'package:task_manager/models/task_model.dart';
+import 'package:task_manager/screens/add_task_screen.dart';
+import 'package:task_manager/screens/home.dart';
 import 'home_screen.dart';
 import 'stacked_icons.dart';
 import 'package:toast/toast.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SettingsScreen extends StatefulWidget {
+  final current_shop;
+  final current_email;
+  SettingsScreen(this.current_shop, this.current_email);
   @override
   _SettingsState createState() => _SettingsState();
 }
 
-showAlertDialog(BuildContext context) async {
-  // set up the buttons
-  // ignore: deprecated_member_use
-  Widget cancelButton = FloatingActionButton(
-    child: Text("Cancel"),
-    onPressed: () {
-      Navigator.pop(context);
-    },
-  );
-  // ignore: deprecated_member_use
-  Widget continueButton = FloatingActionButton(
-    child: Text("OK"),
-    onPressed: () {
-      DatabaseHelper.instance.deleteAllTask();
-      // Toast.show("All data cleared", textStyle: context,
-      //   );
-      Navigator.push(context, MaterialPageRoute(builder: (_) => HomeScreen()));
-    },
-  );
-
-  // set up the AlertDialog
-  AlertDialog alert = AlertDialog(
-    content: Text("Would you like to clear all data? It cannot be undone."),
-    actions: [
-      cancelButton,
-      continueButton,
-    ],
-  );
-
-  // show the dialog
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return alert;
-    },
-  );
-}
-
 class _SettingsState extends State<SettingsScreen> {
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  Widget _buildTask(Task task) {
+    return Card(
+      elevation: 10,
+      clipBehavior: Clip.antiAliasWithSaveLayer,
+      margin: EdgeInsets.symmetric(horizontal: 10.0, vertical: 10.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
+        child: ListTile(
+          title: Text(
+            task.title,
+            style: TextStyle(
+                color: Colors.black,
+                fontSize: 17.0,
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Raleway'),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(width: 5),
+              Text(
+                'Giá: ${task.price}.000đ',
+                style: TextStyle(
+                  fontSize: 14.0,
+                  color: Colors.deepOrange,
+                  // Head line
+                ),
+              ),
+            ],
+          ),
+
+          //onTap: () => _updateTask(task),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,7 +72,10 @@ class _SettingsState extends State<SettingsScreen> {
               color: Colors.black,
             ),
             onPressed: () => Navigator.push(
-                context, MaterialPageRoute(builder: (_) => HomeScreen()))),
+                context,
+                MaterialPageRoute(
+                    builder: (_) =>
+                        Home(widget.current_email, widget.current_shop)))),
         title: Row(children: [
           Text(
             'Settings',
@@ -71,14 +86,6 @@ class _SettingsState extends State<SettingsScreen> {
             ),
           ),
         ]),
-        // actions: [
-        //   IconButton(
-        //       icon: Icon(
-        //         Icons.info_outline,
-        //         color: Colors.black,
-        //       ),
-        //       onPressed: () {}),
-        // ],
         centerTitle: false,
         elevation: 0,
       ),
@@ -96,7 +103,7 @@ class _SettingsState extends State<SettingsScreen> {
                   Padding(
                     padding: const EdgeInsets.only(top: 8.0),
                     child: new Text(
-                      "Task Manager",
+                      "Phụ Kiện Điện Thoại",
                       style: new TextStyle(fontSize: 20.0, color: Colors.grey),
                     ),
                   )
@@ -118,93 +125,6 @@ class _SettingsState extends State<SettingsScreen> {
                   decoration: const BoxDecoration(color: Colors.black12),
                 ),
               ),
-              new Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                            top: 30.0, left: 40.0, right: 20.0, bottom: 30.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            showAlertDialog(context);
-                          },
-                          child: new Container(
-                              alignment: Alignment.center,
-                              height: 40.0,
-                              decoration: new BoxDecoration(
-                                  color: Colors.grey,
-                                  borderRadius: new BorderRadius.circular(9.0)),
-                              child: new Text("CLEAR ALL DATA",
-                                  style: new TextStyle(
-                                      fontSize: 15.0, color: Colors.white))),
-                        ),
-                      ),
-                    ),
-                  ]),
-              SizedBox(
-                width: 1080,
-                height: 1,
-                child: const DecoratedBox(
-                  decoration: const BoxDecoration(color: Colors.black12),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 40.0, right: 20.0),
-                child: new Container(
-                  alignment: Alignment.centerLeft,
-                  height: 60.0,
-                  child: InkWell(
-                    child: new Text(
-                      "Terms and Condition",
-                      style: new TextStyle(
-                          fontSize: 17.0,
-                          color: Colors.brown,
-                          backgroundColor: Colors.transparent),
-                    ),
-                    onTap: () =>
-                        launch('https://bornomala-tech.web.app/policies'),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(left: 40.0, right: 20.0),
-                child: new Container(
-                  alignment: Alignment.centerLeft,
-                  height: 60.0,
-                  child: InkWell(
-                    child: new Text(
-                      "Privacy Policy",
-                      style: new TextStyle(
-                          fontSize: 17.0,
-                          color: Colors.brown,
-                          backgroundColor: Colors.transparent),
-                    ),
-                    onTap: () =>
-                        launch('https://bornomala-tech.web.app/policies'),
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 1080,
-                height: 1,
-                child: const DecoratedBox(
-                  decoration: const BoxDecoration(color: Colors.black12),
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: <Widget>[
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 10.0),
-                      child: new Text("Bornomala Technologies ",
-                          style: new TextStyle(
-                              fontSize: 15.0, color: Colors.black54)),
-                    ),
-                  ],
-                ),
-              )
             ],
           ),
         ),
