@@ -6,6 +6,8 @@ class Task {
   String status; // 0 - Incomplete, 1 - Complete
   String shop;
   String tprice;
+  String numberSell;
+  String giamgia = "0";
 
   Task(
       {this.title,
@@ -14,7 +16,9 @@ class Task {
       this.status,
       this.id,
       this.shop,
-      this.tprice});
+      this.tprice,
+      this.numberSell,
+      this.giamgia});
 
   Task.withId(
       {this.id,
@@ -23,7 +27,9 @@ class Task {
       this.price,
       this.status,
       this.shop,
-      this.tprice});
+      this.tprice,
+      this.numberSell,
+      this.giamgia});
 
   Map<String, dynamic> toMap() {
     final map = Map<String, dynamic>();
@@ -36,6 +42,8 @@ class Task {
     map['status'] = status;
     map['shop'] = shop;
     map['tprice'] = tprice;
+    map['numberSell'] = numberSell;
+    map['giamgia'] = giamgia;
     return map;
   }
 
@@ -48,6 +56,8 @@ class Task {
       status: map['status'],
       shop: map['shop'],
       tprice: map['tprice'],
+      giamgia: map['giamgia'],
+      numberSell: map['numberSell'],
     );
   }
 }

@@ -1,18 +1,30 @@
-class Task {
+class Device {
   String id;
   String name;
-  String shop;
+  String bprice;
+  String nprice;
+  List<String> number;
+  DateTime date;
+  String status;
 
-  Task({
+  Device({
     this.name,
     this.id,
-    this.shop,
+    this.bprice,
+    this.nprice,
+    this.number,
+    this.date,
+    this.status,
   });
 
-  Task.withId({
+  Device.withId({
     this.id,
     this.name,
-    this.shop,
+    this.bprice,
+    this.nprice,
+    this.number,
+    this.date,
+    this.status,
   });
 
   Map<String, dynamic> toMap() {
@@ -21,15 +33,22 @@ class Task {
       map['id'] = id;
     }
     map['name'] = name;
-    map['shop'] = shop;
+    map['bprice'] = bprice;
+    map['nprice'] = nprice;
+    map['number'] = number;
+    map['date'] = date.toIso8601String();
+    map['status'] = status;
     return map;
   }
 
-  factory Task.fromMap(Map<String, dynamic> map) {
-    return Task.withId(
+  factory Device.fromMap(Map<String, dynamic> map) {
+    return Device.withId(
       id: map['id'],
       name: map['name'],
-      shop: map['shop'],
+      bprice: map['bprice'],
+      nprice: map['nprice'],
+      date: DateTime.parse(map['date']),
+      number: List<String>.from(map['number']),
     );
   }
 }

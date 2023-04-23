@@ -175,10 +175,10 @@ class SignUpState extends State<SignUp> {
                         child: FadeAnimation(
                             1.6,
                             Container(
-                              margin: EdgeInsets.only(top: 40),
+                              margin: EdgeInsets.only(top: 70),
                               child: Center(
                                 child: Text(
-                                  "Sign Up",
+                                  "Đăng ký",
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontSize: 40,
@@ -220,7 +220,7 @@ class SignUpState extends State<SignUp> {
                                     keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
-                                        hintText: "Email or Phone number",
+                                        hintText: "Email hoặc số điện thoại",
                                         hintStyle:
                                             TextStyle(color: Colors.grey[400])),
                                   ),
@@ -236,7 +236,7 @@ class SignUpState extends State<SignUp> {
                                     keyboardType: TextInputType.emailAddress,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
-                                        hintText: "Name",
+                                        hintText: "Tên",
                                         hintStyle:
                                             TextStyle(color: Colors.grey[400])),
                                   ),
@@ -248,7 +248,7 @@ class SignUpState extends State<SignUp> {
                                     obscureText: true,
                                     decoration: InputDecoration(
                                         border: InputBorder.none,
-                                        hintText: "Password",
+                                        hintText: "Mật khẩu",
                                         hintStyle:
                                             TextStyle(color: Colors.grey[400])),
                                   ),
@@ -288,7 +288,7 @@ class SignUpState extends State<SignUp> {
                             child: Center(
                               child: TextButton(
                                 child: Text(
-                                  "Sign Up",
+                                  "Đăng ký",
                                   style: TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold),

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:task_manager/models/device_model.dart';
 import 'package:task_manager/models/shop_model.dart';
 // import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
@@ -26,6 +27,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   Future<List<Task>> _taskList;
+  Future<List<Device>> _taskDevice;
   Future<List<Shop>> _shopList;
   Future<List<String>> _shopNameList;
   Future<List<String>> _shopIdList;
@@ -36,19 +38,14 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Task> data = [];
   String totalPriority = "";
   String total1 = "";
+  String number = "";
   String _scanBarcode = 'Unknown';
   DateTime _selectedDate = DateTime.now();
 
-  final String url =
-      "https://gist.githubusercontent.com/thangleuet/d981ae220775be66e9366b743ad012a6/raw/f220c0574e2a9aee904b04c2fa263c43e1f7d663/smartHome";
-
-  // convert _taskList to json data
-  // data = _taskList;
-
   @override
   void initState() {
-    super.initState();
     _updateTaskList();
+    super.initState();
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -89,6 +86,28 @@ class _HomeScreenState extends State<HomeScreen> {
     return taskList;
   }
 
+  Future<List<Device>> getDataDeviceJsonfireStore() async {
+    List<Device> taskList = [];
+
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('device');
+    // Get docs from collection reference
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    // Get data from docs and convert map to List
+    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    for (var document in allData) {
+      Device task = Device.fromMap(document);
+      // int resultday = _selectedDate.day.compareTo(task.date.day);
+      // int resultmonth = _selectedDate.month.compareTo(task.date.month);
+      // int resultyear = _selectedDate.year.compareTo(task.date.year);
+      // if (resultday == 0 && resultmonth == 0 && resultyear == 0)
+      taskList.add(task);
+    }
+    // Check task_list is empty or not
+    taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
+    return taskList;
+  }
+
   // Get number shop
   Future<List<Shop>> getShopfireStore() async {
     List<Shop> shopList = [];
@@ -110,16 +129,65 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void deleteTask(Task task) async {
-    var collection = FirebaseFirestore.instance.collection('phone');
-    collection
-        .doc(task.id) // <-- Doc ID to be deleted.
-        .delete();
+    final snapshot = await FirebaseFirestore.instance
+        .collection('phone')
+        .where('title', isEqualTo: task.title)
+        // .where('date', isEqualTo: task.date.toString())
+        .where('shop', isEqualTo: task.shop)
+        .get();
+
+    final snapshotDevice = await FirebaseFirestore.instance
+        .collection('device')
+        .where('name', isEqualTo: task.title)
+        .get();
+
+    if (snapshot.docs.isNotEmpty) {
+      // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
+      final doc = snapshot.docs.first;
+
+      DateTime dateDevice = DateTime.parse(doc['date']);
+      int resultday = dateDevice.day.compareTo(task.date.day);
+      int resultmonth = dateDevice.month.compareTo(task.date.month);
+      int resultyear = dateDevice.year.compareTo(task.date.year);
+      List<String> updatedNumber;
+
+      if (resultday == 0 &&
+          resultmonth == 0 &&
+          resultyear == 0 &&
+          doc['shop'] == task.shop) {
+        final updatedNumberSell = (int.parse(doc['numberSell']) - 1).toString();
+        if (updatedNumberSell == '0') {
+          await doc.reference.delete();
+        } else {
+          await doc.reference.update({'numberSell': updatedNumberSell});
+        }
+        if (snapshotDevice.docs.isNotEmpty) {
+          final doc = snapshotDevice.docs.first;
+          List<String> numberList = doc['number'].cast<String>();
+          if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
+            numberList[0] = (int.parse(numberList[0]) + 1).toString();
+          } else if (widget.name_shop == "Cửa hàng Quang Tèo 2") {
+            numberList[1] = (int.parse(numberList[1]) + 1).toString();
+          } else if (widget.name_shop == "Cửa hàng Quang Tèo 3") {
+            numberList[2] = (int.parse(numberList[2]) + 1).toString();
+          }
+
+          await doc.reference.update({'number': numberList});
+        }
+      }
+    }
+
+    // var collection = FirebaseFirestore.instance.collection('phone');
+    // collection
+    //     .doc(task.id) // <-- Doc ID to be deleted.
+    //     .delete();
   }
 
   _updateTaskList() {
     setState(() {
       _shopList = getShopfireStore();
       _taskList = getDataJsonfireStore();
+      _taskDevice = getDataDeviceJsonfireStore();
       for (var i = 0; i < data.length; i++) {
         // add the data to the _taskList
         _taskList.then((value) => value.add(data[i]));
@@ -139,16 +207,84 @@ class _HomeScreenState extends State<HomeScreen> {
     await _updateTaskList();
   }
 
-  void sendDataFireStore(Task task) async {
-    String unique_id = UniqueKey().toString();
-    Map<String, String> todoList = {
-      "id": unique_id,
-      "title": task.title,
-      "date": task.date.toString(),
-      "price": task.price,
-      "status": task.status,
-    };
-    FirebaseFirestore.instance.collection('phone').doc(unique_id).set(todoList);
+  void updateDataDeviceFireStore(String idSelect, Device task) async {
+    final docUser = FirebaseFirestore.instance.collection('device');
+    docUser.doc(idSelect).update(task.toMap());
+  }
+
+  void updateDataFireStore(String idSelect, Task task) async {
+    final docUser = FirebaseFirestore.instance.collection('phone');
+    docUser.doc(idSelect).update(task.toMap());
+  }
+
+  Future<void> sendDataFireStore(Task task) async {
+    final snapshot = await FirebaseFirestore.instance
+        .collection('phone')
+        .where('title', isEqualTo: task.title)
+        .get();
+    final snapshotDevice = await FirebaseFirestore.instance
+        .collection('device')
+        .where('name', isEqualTo: task.title)
+        .get();
+    final docDevice = snapshotDevice.docs.first;
+    final doc = snapshot.docs.first;
+
+    if (snapshotDevice.docs.isNotEmpty) {
+      final docDevice = snapshotDevice.docs.first;
+      if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
+        final updatedNumber =
+            (int.parse(docDevice['number'][0]) - 1).toString();
+        final number = [
+          updatedNumber,
+          docDevice['number'][1],
+          docDevice['number'][2]
+        ];
+        await docDevice.reference.update({'number': number});
+      } else if (widget.name_shop == "Cửa hàng Quang Tèo 2") {
+        final updatedNumber =
+            (int.parse(docDevice['number'][1]) - 1).toString();
+        final number = [
+          docDevice['number'][0],
+          updatedNumber,
+          docDevice['number'][2]
+        ];
+        await docDevice.reference.update({'number': number});
+      } else {
+        final updatedNumber =
+            (int.parse(docDevice['number'][2]) - 1).toString();
+        final number = [
+          docDevice['number'][0],
+          docDevice['number'][1],
+          updatedNumber
+        ];
+        await docDevice.reference.update({'number': number});
+      }
+    }
+
+    if (snapshot.docs.isNotEmpty && doc['shop'] == widget.name_shop) {
+      // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
+
+      final updatedNumberSell =
+          (int.parse(doc['numberSell'] ?? '0') + 1).toString();
+      await doc.reference.update({'numberSell': updatedNumberSell});
+    } else {
+      // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
+      String unique_id = UniqueKey().toString();
+      Map<String, String> todoList = {
+        "id": unique_id,
+        "title": task.title,
+        "date": task.date.toString(),
+        "price": task.price,
+        "status": task.status,
+        "shop": task.shop,
+        "tprice": task.tprice,
+        "numberSell": task.numberSell,
+      };
+      await FirebaseFirestore.instance
+          .collection('phone')
+          .doc(unique_id)
+          .set(todoList);
+    }
   }
 
   // Scan qrCode
@@ -169,13 +305,90 @@ class _HomeScreenState extends State<HomeScreen> {
 
     setState(() {
       _scanBarcode = barcodeScanRes;
-      var parts = _scanBarcode.split(':');
-      var _title = parts[0].trim();
-      var _priority = parts[1].trim();
-      Task task = Task(title: _title, date: DateTime.now(), price: _priority);
-      sendDataFireStore(task);
+      _taskDevice.then((taskList) {
+        Device matchedDevice = taskList
+            .firstWhere((task) => task.id == _scanBarcode, orElse: () => null);
+        if (matchedDevice != null) {
+          Task task = Task(
+              id: matchedDevice.id,
+              title: matchedDevice.name,
+              date: DateTime.now(),
+              price: matchedDevice.bprice,
+              status: '0',
+              shop: widget.name_shop,
+              tprice: matchedDevice.nprice,
+              numberSell: "1",
+              giamgia: "0");
+          sendDataFireStore(task).then((value) => _updateTaskList());
+          AlertDialog(
+            content: Text("Đã thêm vào giỏ hàng: " + matchedDevice.name),
+            actions: [
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        } else {
+          // Nếu không có Task phù hợp, thông báo lỗi hoặc thực hiện hành động khác
+          // ...
+          AlertDialog(
+            content: Text("Không tìm thất phụ kiện"),
+            actions: [
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        }
+      });
+
       _updateTaskList();
     });
+  }
+
+  void _showDialog(BuildContext context, Task task) {
+    String textValue = '';
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20.0),
+          ),
+          title: Text('Nhập số tiền giảm giá'),
+          content: TextField(
+            onChanged: (value) {
+              textValue = value;
+            },
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Hủy bỏ'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              child: Text('Xác nhận'),
+              onPressed: () {
+                task.giamgia = textValue;
+                updateDataFireStore(task.id, task);
+                // Do something with the text value
+                print('Giảm giá: $textValue');
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildTask(Task task) {
@@ -187,14 +400,24 @@ class _HomeScreenState extends State<HomeScreen> {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
         child: ListTile(
-          title: Text(
-            task.title,
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 17.0,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Raleway'),
-          ),
+          title: Row(children: [
+            Text(
+              task.title,
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 17.0,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Raleway'),
+            ),
+            Text(
+              "  x" + task.numberSell,
+              style: TextStyle(
+                  color: Colors.green,
+                  fontSize: 20.0,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Raleway'),
+            )
+          ]),
           subtitle: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -215,6 +438,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blueGrey,
                 ),
               ),
+              Text('Giảm giá: ${task.giamgia}.000đ',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.blueGrey,
+                  )),
             ],
           ),
           trailing: IconButton(
@@ -255,17 +483,18 @@ class _HomeScreenState extends State<HomeScreen> {
 
             // value: task.status == 1 ? true : false,
           ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => AddTaskScreen(
-                updateTaskList: _updateTaskList,
-                task: task,
-                name_shop: widget.name_shop,
-                current_email: widget.current_email,
-              ),
-            ),
-          ),
+          onTap: () => _showDialog(context, task),
+          // Navigator.push(
+          //   context,
+          //   MaterialPageRoute(
+          //     builder: (_) => AddTaskScreen(
+          //       updateTaskList: _updateTaskList,
+          //       task: task,
+          //       name_shop: widget.name_shop,
+          //       current_email: widget.current_email,
+          //     ),
+          //   ),
+          // ),
         ),
       ),
     );
@@ -295,13 +524,13 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
             icon: Icon(
               Icons.phone_android,
-              color: Colors.green,
+              color: Color.fromRGBO(143, 148, 251, .6),
             ),
             onPressed: null),
         title: Text(
           "Home",
           style: TextStyle(
-              color: Colors.green,
+              color: Color.fromRGBO(143, 148, 251, .6),
               fontSize: 25.0,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.7,
@@ -316,8 +545,8 @@ class _HomeScreenState extends State<HomeScreen> {
           //     icon: Icon(Icons.history_outlined),
           //     iconSize: 25.0,
           //     color: Colors.black,
-          //     onPressed: () => Navigator.push(context,
-          //         MaterialPageRoute(builder: (_) => HistoryScreen())),
+          //     // onPressed: () => Navigator.push(context,
+          //     //     MaterialPageRoute(builder: (_) => HistoryScreen())),
           //   ),
           // ),
           Container(
@@ -332,14 +561,14 @@ class _HomeScreenState extends State<HomeScreen> {
           Container(
             margin: const EdgeInsets.all(7.0),
             child: IconButton(
-              icon: Icon(Icons.settings_outlined),
+              icon: Icon(Icons.list_alt_outlined),
               iconSize: 25.0,
               color: Colors.black,
               onPressed: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                      builder: (_) => SettingsScreen(
-                          widget.name_shop, widget.current_email))),
+                      builder: (_) => SettingsScreen(widget.name_shop,
+                          widget.current_email, widget.current_role))),
             ),
           ),
         ],
@@ -362,18 +591,30 @@ class _HomeScreenState extends State<HomeScreen> {
           // Sum of all the priority
           if (list_data.length == 0)
             totalPriority = "0";
-          else
-            totalPriority = list_data.reduce((value, element) =>
-                (int.parse(value) + int.parse(element)).toString());
+          else {
+            // totalPriority = list_data.reduce((value, element) =>
+            //     (int.parse(value) + int.parse(element)).toString());
+            totalPriority = snapshot.data
+                .map((Task task) =>
+                    int.parse(task.price) * int.parse(task.numberSell) -
+                    int.parse(task.giamgia))
+                .reduce((total, amount) => total + amount)
+                .toString();
+          }
 
           if (list_data.length == 0)
             total1 = "0";
           else
+            // total1 = snapshot.data
+            //     .map((Task task) => task.tprice)
+            //     .toList()
+            //     .reduce((value, element) =>
+            //         (int.parse(value) + int.parse(element)).toString());
             total1 = snapshot.data
-                .map((Task task) => task.tprice)
-                .toList()
-                .reduce((value, element) =>
-                    (int.parse(value) + int.parse(element)).toString());
+                .map((Task task) =>
+                    int.parse(task.tprice) * int.parse(task.numberSell))
+                .reduce((total, amount) => total + amount)
+                .toString();
           // rae = task.price - task.tprice;
           final int rate = int.parse(totalPriority) - int.parse(total1);
 
@@ -383,6 +624,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   task.date.month == _selectedDate.month &&
                   task.date.day == _selectedDate.day)
               .toList();
+          if (list_data.length == 0)
+            number = "0";
+          else
+            number = snapshot.data
+                .map((Task task) => task.numberSell)
+                .toList()
+                .reduce((value, element) =>
+                    (int.parse(value) + int.parse(element)).toString());
 
           return RefreshIndicator(
             child: ListView.builder(
@@ -428,7 +677,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                           child: ListTile(
                             title: Text(
-                              'Số lượng: ${snapshot.data.length}',
+                              'Số lượng: ${number}',
                               style: TextStyle(
                                 color: Colors.blueGrey,
                                 fontSize: 16.0,
