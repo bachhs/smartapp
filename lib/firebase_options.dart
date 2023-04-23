@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -28,10 +25,7 @@ class DefaultFirebaseOptions {
       case TargetPlatform.iOS:
         return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for windows - '
@@ -49,11 +43,23 @@ class DefaultFirebaseOptions {
     }
   }
 
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyCZuIKpvrZgrrqFBLsgr21SxbTCnIyXrIo',
+    appId: '1:1080317807087:web:bfffcc00df508344e7ce1a',
+    messagingSenderId: '1080317807087',
+    projectId: 'todosmart-c28d5',
+    authDomain: 'todosmart-c28d5.firebaseapp.com',
+    databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
+    storageBucket: 'todosmart-c28d5.appspot.com',
+    measurementId: 'G-HCNCZL3QXB',
+  );
+
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyCUC4vV8aQKd4R4O3iyvWAa-vYTepgY1Ww',
     appId: '1:1080317807087:android:d733cfe9300b850fe7ce1a',
     messagingSenderId: '1080317807087',
     projectId: 'todosmart-c28d5',
+    databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
     storageBucket: 'todosmart-c28d5.appspot.com',
   );
 
@@ -62,6 +68,18 @@ class DefaultFirebaseOptions {
     appId: '1:1080317807087:ios:95da32f2b7cad737e7ce1a',
     messagingSenderId: '1080317807087',
     projectId: 'todosmart-c28d5',
+    databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
+    storageBucket: 'todosmart-c28d5.appspot.com',
+    iosClientId: '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
+    iosBundleId: 'com.example.smartApp',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyDnNMOjI5TBWr0sa69ozasoyhPCJEw2ous',
+    appId: '1:1080317807087:ios:95da32f2b7cad737e7ce1a',
+    messagingSenderId: '1080317807087',
+    projectId: 'todosmart-c28d5',
+    databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
     storageBucket: 'todosmart-c28d5.appspot.com',
     iosClientId: '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartApp',
