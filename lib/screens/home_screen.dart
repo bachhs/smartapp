@@ -227,7 +227,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .where('name', isEqualTo: task.title)
         .get();
     final docDevice = snapshotDevice.docs.first;
-    final doc = snapshot.docs.first;
 
     if (snapshotDevice.docs.isNotEmpty) {
       final docDevice = snapshotDevice.docs.first;
@@ -260,13 +259,33 @@ class _HomeScreenState extends State<HomeScreen> {
         await docDevice.reference.update({'number': number});
       }
     }
+    if (snapshot.docs.isNotEmpty) {
+      final doc = snapshot.docs.first;
+      if (snapshot.docs.isNotEmpty && doc['shop'] == widget.name_shop) {
+        // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
 
-    if (snapshot.docs.isNotEmpty && doc['shop'] == widget.name_shop) {
-      // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
-
-      final updatedNumberSell =
-          (int.parse(doc['numberSell'] ?? '0') + 1).toString();
-      await doc.reference.update({'numberSell': updatedNumberSell});
+        final updatedNumberSell =
+            (int.parse(doc['numberSell'] ?? '0') + 1).toString();
+        await doc.reference.update({'numberSell': updatedNumberSell});
+      } else {
+        // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
+        String unique_id = UniqueKey().toString();
+        Map<String, String> todoList = {
+          "id": unique_id,
+          "title": task.title,
+          "date": task.date.toString(),
+          "price": task.price,
+          "status": task.status,
+          "shop": task.shop,
+          "tprice": task.tprice,
+          "numberSell": task.numberSell,
+          "giamgia": "0"
+        };
+        await FirebaseFirestore.instance
+            .collection('phone')
+            .doc(unique_id)
+            .set(todoList);
+      }
     } else {
       // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
       String unique_id = UniqueKey().toString();
@@ -279,6 +298,7 @@ class _HomeScreenState extends State<HomeScreen> {
         "shop": task.shop,
         "tprice": task.tprice,
         "numberSell": task.numberSell,
+        "giamgia": "0"
       };
       await FirebaseFirestore.instance
           .collection('phone')
