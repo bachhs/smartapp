@@ -41,6 +41,7 @@ class _LoginState extends State<Login> {
         _password = credentials['password'];
       });
     });
+    signIn(context);
   }
 
   @override
@@ -158,15 +159,17 @@ class _LoginState extends State<Login> {
         await saveLoginCredentials(_emailController.text, _password);
         await saveLoginStatus(true);
       }
-      await getLoginCredentials().then((credentials) {
-        setState(() {
-          _rememberMe = credentials['isLoggedIn'];
-          _emailController.text = credentials['username'];
-          _passwordController.text = credentials['password'];
-          _email = credentials['username'];
-          _password = credentials['password'];
+      if (_email == "" || _password == "") {
+        await getLoginCredentials().then((credentials) {
+          setState(() {
+            _rememberMe = credentials['isLoggedIn'];
+            _emailController.text = credentials['username'];
+            _passwordController.text = credentials['password'];
+            _email = credentials['username'];
+            _password = credentials['password'];
+          });
         });
-      });
+      }
       await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: _email.trim(),
         password: _password.trim(),

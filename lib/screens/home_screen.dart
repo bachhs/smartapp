@@ -321,7 +321,10 @@ class _HomeScreenState extends State<HomeScreen> {
               giamgia: "0");
           sendDataFireStore(task).then((value) => _updateTaskList());
           AlertDialog(
-            content: Text("Đã thêm vào giỏ hàng: " + matchedDevice.name),
+            content: Text("Đã thêm vào giỏ hàng: " +
+                matchedDevice.name +
+                " giá:" +
+                matchedDevice.bprice),
             actions: [
               TextButton(
                 child: Text("OK"),
@@ -335,7 +338,7 @@ class _HomeScreenState extends State<HomeScreen> {
           // Nếu không có Task phù hợp, thông báo lỗi hoặc thực hiện hành động khác
           // ...
           AlertDialog(
-            content: Text("Không tìm thất phụ kiện"),
+            content: Text("Không tìm thất phụ kiện!" + _scanBarcode),
             actions: [
               TextButton(
                 child: Text("OK"),
@@ -347,7 +350,6 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         }
       });
-
       _updateTaskList();
     });
   }

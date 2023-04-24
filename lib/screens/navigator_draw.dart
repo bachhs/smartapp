@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:task_manager/models/shop_model.dart';
 import 'package:task_manager/models/user_model.dart';
 import 'package:task_manager/screens/home.dart';
@@ -25,6 +26,13 @@ class MyDrawerState extends State<MyDrawer> {
   @override
   void initState() {
     super.initState();
+  }
+
+  void clearLoginCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.remove('isLoggedIn');
+    prefs.remove('username');
+    prefs.remove('password');
   }
 
   Future<void> _signOut() async {
@@ -123,11 +131,12 @@ class MyDrawerState extends State<MyDrawer> {
             ),
             ListTile(
               leading: Icon(Icons.exit_to_app),
-              title: Text('Logout',
+              title: Text('Đăng xuất',
                   style: TextStyle(
                     fontSize: 16,
                   )),
               onTap: () => {
+                clearLoginCredentials(),
                 _signOut(),
                 Navigator.push(
                     context,
