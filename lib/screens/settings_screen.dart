@@ -159,13 +159,15 @@ class _SettingsState extends State<SettingsScreen> {
                 ),
               ),
               SizedBox(width: 5),
-              Text(
-                'Giá nhập: ${task.nprice}.000đ',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.blueGrey,
-                ),
-              ),
+              widget.current_role == "admin"
+                  ? Text(
+                      'Giá nhập: ${task.nprice}.000đ',
+                      style: TextStyle(
+                        fontSize: 14.0,
+                        color: Colors.blueGrey,
+                      ),
+                    )
+                  : SizedBox(width: 0),
               SizedBox(width: 5),
               Text(
                 widget.current_shop == "Cửa hàng Quang Tèo 1"
