@@ -129,7 +129,7 @@ class _SettingsState extends State<SettingsScreen> {
   // }
 
   @override
-  Widget _buildTask(Device task) {
+  Widget _buildTask(Device task, int index) {
     return Card(
       elevation: 10,
       clipBehavior: Clip.antiAliasWithSaveLayer,
@@ -138,6 +138,12 @@ class _SettingsState extends State<SettingsScreen> {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
         child: ListTile(
+          leading: Text('${index}',
+              style: TextStyle(
+                  color: Colors.black,
+                  fontSize: 17.0,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Raleway')),
           title: Text(
             task.name,
             style: TextStyle(
@@ -300,6 +306,8 @@ class _SettingsState extends State<SettingsScreen> {
               .where((Device task) =>
                   task.name.toLowerCase().contains(_searchQuery.toLowerCase()))
               .toList();
+          filteredData.sort((a, b) => a.name.compareTo(b.name));
+
           snapshot.data.map((Device task) => task.bprice).toList();
           return RefreshIndicator(
             child: ListView.builder(
@@ -358,7 +366,7 @@ class _SettingsState extends State<SettingsScreen> {
                   );
                 }
 
-                return _buildTask(filteredData[index - 1]);
+                return _buildTask(filteredData[index - 1], index);
               },
             ),
             onRefresh: _pullRefresh,

@@ -86,6 +86,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
       _deviceList = deviceList;
       _filteredDeviceList = deviceList;
     });
+    _filteredDeviceList.sort((a, b) => a.name.compareTo(b.name));
   }
 
   Future<List<String>> getDataShopFirestore() async {
@@ -296,6 +297,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     setState(() {
       _filteredDeviceList = filteredList;
     });
+    _filteredDeviceList.sort((a, b) => a.name.compareTo(b.name));
   }
 
 //   @override
@@ -557,6 +559,12 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
                         borderRadius: BorderRadius.circular(15.0),
                       ),
                       child: ListTile(
+                        leading: Text('${index + 1}',
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 17.0,
+                                fontWeight: FontWeight.bold,
+                                fontFamily: 'Raleway')),
                         title: GestureDetector(
                           child: Text(device.name,
                               style: TextStyle(

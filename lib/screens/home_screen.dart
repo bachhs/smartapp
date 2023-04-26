@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:task_manager/models/device_model.dart';
 import 'package:task_manager/models/shop_model.dart';
 // import 'package:task_manager/helpers/database_helper.dart';
@@ -12,6 +15,7 @@ import 'package:task_manager/screens/settings_screen.dart';
 import 'qr_scan.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:connectivity/connectivity.dart';
+import 'package:csv/csv.dart';
 // import 'package:toast/toast.dart';
 import 'dart:async';
 
@@ -61,6 +65,29 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
     _updateTaskList();
+  }
+
+  void saveCSV() async {
+    List<Device> devices = await getDataDeviceJsonfireStore();
+    List<List<dynamic>> rows = [];
+
+    // Thêm hàng tiêu đề
+    rows.add(['id', 'name']);
+
+    // Thêm các hàng dữ liệu
+    devices.forEach((device) {
+      rows.add([device.id, device.name]);
+    });
+    Directory documentsDirectory = await getApplicationDocumentsDirectory();
+    String dir = (await getExternalStorageDirectory()).path;
+    try {
+      // Write data to CSV file
+      File csvFile = File('${dir}/devices.csv');
+      String csv = const ListToCsvConverter().convert(rows);
+      await csvFile.writeAsString(csv);
+    } catch (e) {
+      print('Error writing CSV file: $e');
+    }
   }
 
   Future<List<Task>> getDataJsonfireStore() async {
@@ -386,6 +413,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           title: Text('Nhập số tiền giảm giá'),
           content: TextField(
+            keyboardType: TextInputType.number,
             onChanged: (value) {
               textValue = value;
             },
@@ -400,7 +428,11 @@ class _HomeScreenState extends State<HomeScreen> {
             TextButton(
               child: Text('Xác nhận'),
               onPressed: () {
-                task.giamgia = textValue;
+                if (textValue != "") {
+                  task.giamgia = textValue;
+                } else {
+                  task.giamgia = "0";
+                }
                 updateDataFireStore(task.id, task);
                 // Do something with the text value
                 print('Giảm giá: $textValue');
@@ -567,8 +599,7 @@ class _HomeScreenState extends State<HomeScreen> {
           //     icon: Icon(Icons.history_outlined),
           //     iconSize: 25.0,
           //     color: Colors.black,
-          //     // onPressed: () => Navigator.push(context,
-          //     //     MaterialPageRoute(builder: (_) => HistoryScreen())),
+          //     onPressed: () => {saveCSV()},
           //   ),
           // ),
           Container(
