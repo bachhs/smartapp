@@ -8,6 +8,7 @@ import 'package:task_manager/models/device_model.dart';
 import 'package:task_manager/models/shop_model.dart';
 // import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
+import 'package:task_manager/screens/consum.dart';
 import 'package:task_manager/screens/navigator_draw.dart';
 import 'package:task_manager/screens/add_task_screen.dart';
 import 'package:intl/intl.dart';
@@ -593,6 +594,19 @@ class _HomeScreenState extends State<HomeScreen> {
         centerTitle: false,
         elevation: 0,
         actions: [
+          Container(
+            margin: const EdgeInsets.all(0),
+            child: IconButton(
+              icon: Icon(Icons.money_outlined),
+              iconSize: 25.0,
+              color: Colors.black,
+              onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (_) => Consumer(widget.name_shop,
+                          widget.current_email, widget.current_role))),
+            ),
+          ),
           // Container(
           //   margin: const EdgeInsets.all(0),
           //   child: IconButton(

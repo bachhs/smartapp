@@ -80,7 +80,6 @@ class _SettingsState extends State<SettingsScreen> {
       taskList.add(task);
     }
     // Check task_list is empty or not
-    taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
     return taskList;
   }
 
@@ -94,13 +93,6 @@ class _SettingsState extends State<SettingsScreen> {
   _updateTaskList() {
     setState(() {
       _taskList = getDataJsonfireStore();
-      for (var i = 0; i < data.length; i++) {
-        // add the data to the _taskList
-        _taskList.then((value) => value.add(data[i]));
-        // Sort the _taskList
-        _taskList.then((value) =>
-            value.sort((taskA, taskB) => taskA.date.compareTo(taskB.date)));
-      }
     });
   }
 
@@ -112,21 +104,6 @@ class _SettingsState extends State<SettingsScreen> {
     Duration(seconds: 1);
     await _updateTaskList();
   }
-
-  // void sendDataFireStore(Device task) async {
-  //   String unique_id = UniqueKey().toString();
-  //   Map<String, String> todoList = {
-  //     "id": unique_id,
-  //     "title": task.title,
-  //     "date": task.date.toString(),
-  //     "price": task.price,
-  //     "status": task.status,
-  //   };
-  //   FirebaseFirestore.instance
-  //       .collection('device')
-  //       .doc(unique_id)
-  //       .set(todoList);
-  // }
 
   @override
   Widget _buildTask(Device task, int index) {
