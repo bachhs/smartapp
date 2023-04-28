@@ -26,6 +26,7 @@ class Consumer extends StatefulWidget {
 
 class _ConsumerState extends State<Consumer> {
   Future<List<ComsumModel>> _taskList;
+  ComsumModel default_consum;
   Future<List<Shop>> _shopList;
   String _searchQuery = '';
   int taskIndex = 0;
@@ -40,6 +41,7 @@ class _ConsumerState extends State<Consumer> {
   DateTime _selectedDate = DateTime.now();
   String _thu = "";
   String _chi = "";
+  String _id = "";
   bool checkStatus = false;
 
   @override
@@ -49,7 +51,7 @@ class _ConsumerState extends State<Consumer> {
   }
 
   void updateDataConsumFireStore(String idSelect, ComsumModel task) async {
-    final docUser = FirebaseFirestore.instance.collection('device');
+    final docUser = FirebaseFirestore.instance.collection('consum');
     docUser.doc(idSelect).update(task.toMap());
   }
 
@@ -68,7 +70,8 @@ class _ConsumerState extends State<Consumer> {
         .set(todoList);
   }
 
-  void _showDialog_daily(BuildContext context, bool checkStatus) {
+  void _showDialog_daily(
+      BuildContext context, bool checkStatus, ComsumModel consum) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -76,61 +79,118 @@ class _ConsumerState extends State<Consumer> {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20.0),
           ),
-          title: Text('Nhập số tiền chi '),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            TextFormField(
-              initialValue: _chi,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Nhập số tiền chi',
-                hintStyle: TextStyle(fontSize: 18.0),
-                prefixIcon: Icon(Icons.money),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-              ),
-              onChanged: (value) {
-                _chi = value;
-              },
+          title: Text(
+            'Tiền thu chi',
+            style: TextStyle(
+              fontSize: 24.0,
+              fontWeight: FontWeight.bold,
+              color: Colors.purple,
+              letterSpacing: 1.2,
             ),
-            TextFormField(
-              initialValue: _thu,
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                hintText: 'Nhập số tiền thu ngoài',
-                hintStyle: TextStyle(fontSize: 18.0),
-                prefixIcon: Icon(Icons.money),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10.0),
+          ),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              SizedBox(height: 16.0),
+              Text(
+                'Số tiền chi',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
                 ),
               ),
-              onChanged: (value) {
-                _thu = value;
-              },
-            )
+              TextFormField(
+                initialValue: _chi,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Nhập số tiền chi',
+                  hintStyle: TextStyle(fontSize: 18.0),
+                  prefixIcon: Icon(Icons.money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  _chi = value;
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text(
+                'Số tiền thu ngoài',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              TextFormField(
+                initialValue: _thu,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  hintText: 'Nhập số tiền thu ngoài',
+                  hintStyle: TextStyle(fontSize: 18.0),
+                  prefixIcon: Icon(Icons.money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  _thu = value;
+                },
+              )
+            ])
           ]),
           actions: <Widget>[
             TextButton(
-              child: Text('Hủy bỏ'),
+              child: Text(
+                'Hủy bỏ',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.grey[800],
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
               onPressed: () {
                 Navigator.of(context).pop();
               },
             ),
             TextButton(
-              child: Text('Xác nhận'),
+              child: Text(
+                'Xác nhận',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+              style: ButtonStyle(
+                backgroundColor: MaterialStateProperty.all<Color>(Colors.blue),
+                shape: MaterialStateProperty.all<RoundedRectangleBorder>(
+                  RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+              ),
               onPressed: () {
-                ComsumModel task = ComsumModel(
-                  thu: _thu,
-                  chi: _chi,
-                  date: _selectedDate,
-                  shop: widget.current_shop,
-                );
                 if (checkStatus == false) {
+                  ComsumModel task = ComsumModel(
+                    thu: _thu,
+                    chi: _chi,
+                    date: _selectedDate,
+                    shop: widget.current_shop,
+                  );
                   sendDataFireStore(task);
                 } else {
-                  updateDataConsumFireStore(id, task);
+                  ComsumModel task = ComsumModel(
+                    thu: _thu,
+                    chi: _chi,
+                    date: consum.date,
+                    shop: widget.current_shop,
+                  );
+                  updateDataConsumFireStore(consum.id, task);
                 }
-
                 _updateTaskList();
                 Navigator.of(context).pop();
               },
@@ -282,8 +342,9 @@ class _ConsumerState extends State<Consumer> {
             onTap: () => {
                   _thu = task.thu,
                   _chi = task.chi,
+                  _id = task.id,
                   checkStatus = true,
-                  _showDialog_daily(context, checkStatus)
+                  _showDialog_daily(context, checkStatus, task)
                 }
             // Navigator.push(
             //   context,
@@ -313,8 +374,12 @@ class _ConsumerState extends State<Consumer> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         icon: Icon(Icons.add_outlined),
-        onPressed: () =>
-            {_thu = "", _chi = "", _showDialog_daily(context, checkStatus)},
+        onPressed: () => {
+          _thu = "",
+          _chi = "",
+          checkStatus = false,
+          _showDialog_daily(context, checkStatus, default_consum)
+        },
       ),
       appBar: AppBar(
         backgroundColor: Colors.white,

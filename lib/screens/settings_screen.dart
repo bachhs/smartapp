@@ -342,7 +342,6 @@ class _SettingsState extends State<SettingsScreen> {
                     ),
                   );
                 }
-
                 return _buildTask(filteredData[index - 1], index);
               },
             ),

@@ -321,7 +321,7 @@ class _DeviceScreenState extends State<DeviceScreen> {
                             else if (widget.name_shop == "Cửa hàng Quang Tèo 2")
                               {_number[1] = input}
                             else if (widget.name_shop == "Cửa hàng Quang Tèo 3")
-                              {_number[3] = input}
+                              {_number[2] = input}
                           },
                           initialValue: numberInput,
                         ),
