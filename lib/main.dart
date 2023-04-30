@@ -72,19 +72,23 @@ Future<UserModel> getNameFirestore(String current_email) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String _email = await prefs.getString('username');
   String _password = await prefs.getString('password');
-  await _initDataShop(_email);
+  if (_email != null && _password != null) {
+    print(_email);
+    print(_password);
+    await _initDataShop(_email);
+  }
+
   Widget _defaultHome = await _email == null || _password == null
       ? Login(UserModel(email: "", password: "", role: "", name: ""))
       : Home(_email, _current_shop);
 
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
   runApp(MyApp(_defaultHome));
 }
 

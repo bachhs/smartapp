@@ -70,7 +70,8 @@ class DefaultFirebaseOptions {
     projectId: 'todosmart-c28d5',
     databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
     storageBucket: 'todosmart-c28d5.appspot.com',
-    iosClientId: '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
+    iosClientId:
+        '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartApp',
   );
 
@@ -81,7 +82,8 @@ class DefaultFirebaseOptions {
     projectId: 'todosmart-c28d5',
     databaseURL: 'https://todosmart-c28d5-default-rtdb.firebaseio.com',
     storageBucket: 'todosmart-c28d5.appspot.com',
-    iosClientId: '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
+    iosClientId:
+        '1080317807087-0g52nlpda2dccu4vb88np6bkj8kust4p.apps.googleusercontent.com',
     iosBundleId: 'com.example.smartApp',
   );
 }
