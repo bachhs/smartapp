@@ -72,7 +72,9 @@ Future<UserModel> getNameFirestore(String current_email) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
 
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String _email = await prefs.getString('username');
@@ -81,10 +83,7 @@ void main() async {
   Widget _defaultHome = await _email == null || _password == null
       ? Login(UserModel(email: "", password: "", role: "", name: ""))
       : Home(_email, _current_shop);
-
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+      
   runApp(MyApp(_defaultHome));
 }
 
