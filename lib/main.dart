@@ -88,7 +88,6 @@ void main() async {
   Widget _defaultHome = await _email == null || _password == null
       ? Login(UserModel(email: "", password: "", role: "", name: ""))
       : Home(_email, _current_shop);
-
   runApp(MyApp(_defaultHome));
 }
 
