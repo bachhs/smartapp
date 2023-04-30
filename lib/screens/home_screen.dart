@@ -5,10 +5,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:task_manager/models/device_model.dart';
+import 'package:task_manager/models/money_model.dart';
 import 'package:task_manager/models/shop_model.dart';
 // import 'package:task_manager/helpers/database_helper.dart';
 import 'package:task_manager/models/task_model.dart';
 import 'package:task_manager/screens/consum.dart';
+import 'package:task_manager/screens/money.dart';
 import 'package:task_manager/screens/navigator_draw.dart';
 import 'package:task_manager/screens/add_task_screen.dart';
 import 'package:intl/intl.dart';
@@ -46,10 +48,14 @@ class _HomeScreenState extends State<HomeScreen> {
   String number = "";
   String _scanBarcode = 'Unknown';
   DateTime _selectedDate = DateTime.now();
+  Future<List<MoneyModel>> _moneyList;
+  List<String> _gia_nhap = ["0", "0", "0"];
+  List<String> _gia_ban = ["0", "0", "0"];
 
   @override
   void initState() {
     _updateTaskList();
+    _updateMoneyList();
     super.initState();
   }
 
@@ -154,6 +160,93 @@ class _HomeScreenState extends State<HomeScreen> {
       shopList.add(shop);
     }
     return shopList;
+  }
+
+  Future<void> sendDataMoneyFireStore(MoneyModel task) async {
+    String unique_id = UniqueKey().toString();
+    Map<String, dynamic> todoList;
+    if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
+      todoList = await {
+        "id": unique_id,
+        "date": task.date.toString(),
+        "gia_nhap": task.gia_nhap,
+        "gia_ban": task.gia_ban,
+      };
+    } else if (widget.name_shop == "Cửa hàng Quang Tèo 2") {
+      todoList = await {
+        "id": unique_id,
+        "gia_nhap": task.gia_nhap,
+        "date": task.date.toString(),
+        "gia_ban": task.gia_ban,
+      };
+    } else {
+      todoList = await {
+        "id": unique_id,
+        "gia_nhap": task.gia_nhap,
+        "date": task.date.toString(),
+        "gia_ban": task.gia_ban,
+      };
+    }
+
+    await FirebaseFirestore.instance
+        .collection('money')
+        .doc(unique_id)
+        .set(todoList);
+  }
+
+  void updateDataMoneyFireStore(String idSelect, MoneyModel task) async {
+    final docUser = FirebaseFirestore.instance.collection('money');
+    docUser.doc(idSelect).update(task.toMap());
+  }
+
+  void check_money_model() async {
+    DateTime date = DateTime.now();
+    final snapshot = await FirebaseFirestore.instance.collection('money').get();
+    List<MoneyModel> moneyModels = await snapshot.docs
+        .map((doc) => MoneyModel.fromMap(doc.data()))
+        .toList();
+    List<MoneyModel> filteredMoneyModels =
+        await moneyModels.where((moneyModel) {
+      DateTime moneyModelDate =
+          moneyModel.date; // Chuyển đổi Timestamp sang DateTime
+
+      // So sánh ngày, tháng và năm của DateTime với ngày, tháng và năm của date
+      return moneyModelDate.year == date.year &&
+          moneyModelDate.month == date.month &&
+          moneyModelDate.day == date.day;
+    }).toList();
+
+    if (filteredMoneyModels.length == 0) {
+      if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
+        _gia_nhap[0] = total1;
+        _gia_ban[0] = totalPriority;
+      } else if (widget.name_shop == "Cửa hàng Quang Tèo 2") {
+        _gia_nhap[1] = total1;
+        _gia_ban[1] = totalPriority;
+      } else {
+        _gia_nhap[2] = total1;
+        _gia_ban[2] = totalPriority;
+      }
+      MoneyModel moneySend = await MoneyModel(
+        date: DateTime.now(),
+        gia_nhap: _gia_nhap,
+        gia_ban: _gia_ban,
+      );
+      await sendDataMoneyFireStore(moneySend);
+    } else {
+      if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
+        filteredMoneyModels[0].gia_nhap[0] = total1;
+        filteredMoneyModels[0].gia_ban[0] = totalPriority;
+      } else if (widget.name_shop == "Cửa hàng Quang Tèo 2") {
+        filteredMoneyModels[0].gia_nhap[1] = total1;
+        filteredMoneyModels[0].gia_ban[1] = totalPriority;
+      } else {
+        filteredMoneyModels[0].gia_nhap[2] = total1;
+        filteredMoneyModels[0].gia_ban[2] = totalPriority;
+      }
+      await updateDataMoneyFireStore(
+          filteredMoneyModels[0].id, filteredMoneyModels[0]);
+    }
   }
 
   void deleteTask(Task task) async {
@@ -402,6 +495,30 @@ class _HomeScreenState extends State<HomeScreen> {
     });
   }
 
+  Future<List<MoneyModel>> getDataMoneyfireStore() async {
+    List<MoneyModel> taskList = [];
+
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('money');
+    // Get docs from collection reference
+    QuerySnapshot querySnapshot = await collectionRef.get();
+    // Get data from docs and convert map to List
+    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    for (var document in allData) {
+      MoneyModel task = MoneyModel.fromMap(document);
+      taskList.add(task);
+    }
+    // Check task_list is empty or not
+    taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
+    return taskList;
+  }
+
+  void _updateMoneyList() {
+    setState(() {
+      _moneyList = getDataMoneyfireStore();
+    });
+  }
+
   void _showDialog(BuildContext context, Task task) {
     String textValue = '';
 
@@ -607,15 +724,24 @@ class _HomeScreenState extends State<HomeScreen> {
                           widget.current_email, widget.current_role))),
             ),
           ),
-          // Container(
-          //   margin: const EdgeInsets.all(0),
-          //   child: IconButton(
-          //     icon: Icon(Icons.history_outlined),
-          //     iconSize: 25.0,
-          //     color: Colors.black,
-          //     onPressed: () => {saveCSV()},
-          //   ),
-          // ),
+          Container(
+            margin: const EdgeInsets.all(0),
+            child: widget.current_role == "admin"
+                ? IconButton(
+                    icon: Icon(Icons.money_off_csred_outlined),
+                    iconSize: 25.0,
+                    color: Colors.black,
+                    onPressed: () => {
+                      check_money_model(),
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => MoneyPage(widget.name_shop,
+                                  widget.current_email, widget.current_role)))
+                    },
+                  )
+                : SizedBox.shrink(),
+          ),
           Container(
             margin: const EdgeInsets.all(7.0),
             child: IconButton(
@@ -751,38 +877,37 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontWeight: FontWeight.normal,
                               ),
                             ),
-                            subtitle: widget.current_role == "admin"
-                                ? Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Tổng thu: ${totalPriority}.000đ',
-                                        style: TextStyle(
-                                          color: Colors.blueGrey,
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Tổng chi: ${total1}.000đ',
-                                        style: TextStyle(
-                                          color: Colors.blueGrey,
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Lãi: ${rate}.000đ',
-                                        style: TextStyle(
-                                          color: Colors.blueGrey,
-                                          fontSize: 16.0,
-                                          fontWeight: FontWeight.normal,
-                                        ),
-                                      ),
-                                    ],
-                                  )
-                                : null,
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Tổng thu: ${totalPriority}.000đ',
+                                  style: TextStyle(
+                                    color: Colors.blueGrey,
+                                    fontSize: 16.0,
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                                if (widget.current_role == "admin")
+                                  Text(
+                                    'Tổng chi: ${total1}.000đ',
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                if (widget.current_role == "admin")
+                                  Text(
+                                    'Lãi: ${rate}.000đ',
+                                    style: TextStyle(
+                                      color: Colors.blueGrey,
+                                      fontSize: 16.0,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         )
                       ],

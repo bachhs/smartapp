@@ -6,6 +6,7 @@ import 'package:task_manager/models/shop_model.dart';
 import 'package:task_manager/models/user_model.dart';
 import 'package:task_manager/screens/home.dart';
 import 'package:task_manager/screens/signup.dart';
+import 'package:task_manager/screens/splash_screen.dart';
 import 'home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -32,16 +33,6 @@ class _LoginState extends State<Login> {
   void initState() {
     super.initState();
     _passwordVisible = false;
-    getLoginCredentials().then((credentials) {
-      setState(() {
-        _rememberMe = credentials['isLoggedIn'];
-        _emailController.text = credentials['username'];
-        _passwordController.text = credentials['password'];
-        _email = credentials['username'];
-        _password = credentials['password'];
-      });
-    });
-    signIn(context);
   }
 
   @override

@@ -115,109 +115,115 @@ class _SettingsState extends State<SettingsScreen> {
       child: Padding(
         padding: EdgeInsets.symmetric(vertical: 5.0, horizontal: 15.0),
         child: ListTile(
-          leading: Text('${index}',
+            leading: Text('${index}',
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 17.0,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Raleway')),
+            title: Text(
+              task.name,
               style: TextStyle(
                   color: Colors.black,
                   fontSize: 17.0,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Raleway')),
-          title: Text(
-            task.name,
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 17.0,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Raleway'),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(width: 5),
-              Text(
-                'Giá bán: ${task.bprice}.000đ',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.deepOrange,
-                  // Head line
-                ),
-              ),
-              SizedBox(width: 5),
-              widget.current_role == "admin"
-                  ? Text(
-                      'Giá nhập: ${task.nprice}.000đ',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.blueGrey,
-                      ),
-                    )
-                  : SizedBox(width: 0),
-              SizedBox(width: 5),
-              Text(
-                widget.current_shop == "Cửa hàng Quang Tèo 1"
-                    ? 'Số lượng: ${task.number[0]}'
-                    : widget.current_shop == "Cửa hàng Quang Tèo 2"
-                        ? 'Số lượng: ${task.number[1]}'
-                        : 'Số lượng: ${task.number[2]}',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.blueGrey,
-                ),
-              ),
-              Text(
-                '${_dateFormatter.format(task.date)}',
-                style: TextStyle(
-                  fontSize: 14.0,
-                  color: Colors.blueGrey,
-                ),
-              ),
-            ],
-          ),
-          trailing: IconButton(
-            icon: Icon(
-              Icons.delete,
-              color: Colors.red,
+                  fontFamily: 'Raleway'),
             ),
-            onPressed: () {
-              showDialog(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      content: Text("Bạn có đồng ý xóa phụ kiện này?"),
-                      actions: [
-                        TextButton(
-                          child: Text("Cancel"),
-                          onPressed: () {
-                            Navigator.of(context).pop();
-                          },
+            subtitle: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(width: 5),
+                Text(
+                  'Giá bán: ${task.bprice}.000đ',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.deepOrange,
+                    // Head line
+                  ),
+                ),
+                SizedBox(width: 5),
+                widget.current_role == "admin"
+                    ? Text(
+                        'Giá nhập: ${task.nprice}.000đ',
+                        style: TextStyle(
+                          fontSize: 14.0,
+                          color: Colors.blueGrey,
                         ),
-                        TextButton(
-                          child: Text("Delete"),
-                          onPressed: () async {
-                            await deleteTask(task);
-                            _updateTaskList();
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                      ],
-                    );
-                  });
-            },
+                      )
+                    : SizedBox(width: 0),
+                SizedBox(width: 5),
+                Text(
+                  widget.current_shop == "Cửa hàng Quang Tèo 1"
+                      ? 'Số lượng: ${task.number[0]}'
+                      : widget.current_shop == "Cửa hàng Quang Tèo 2"
+                          ? 'Số lượng: ${task.number[1]}'
+                          : 'Số lượng: ${task.number[2]}',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+                Text(
+                  '${_dateFormatter.format(task.date)}',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.blueGrey,
+                  ),
+                ),
+              ],
+            ),
+            trailing: widget.current_role == "admin"
+                ? IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      color: Colors.red,
+                    ),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              content: Text("Bạn có đồng ý xóa phụ kiện này?"),
+                              actions: [
+                                TextButton(
+                                  child: Text("Cancel"),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                                TextButton(
+                                  child: Text("Delete"),
+                                  onPressed: () async {
+                                    await deleteTask(task);
+                                    _updateTaskList();
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          });
+                    },
 
-            // value: task.status == 1 ? true : false,
-          ),
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => DeviceScreen(
-                updateTaskList: _updateTaskList,
-                device: task,
-                name_shop: widget.current_shop,
-                current_email: widget.current_email,
-                current_role: widget.current_role,
-              ),
-            ),
-          ),
-        ),
+                    // value: task.status == 1 ? true : false,
+                  )
+                : null,
+            onTap: () => {
+                  if (widget.current_role == "admin")
+                    {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => DeviceScreen(
+                            updateTaskList: _updateTaskList,
+                            device: task,
+                            name_shop: widget.current_shop,
+                            current_email: widget.current_email,
+                            current_role: widget.current_role,
+                          ),
+                        ),
+                      ),
+                    }
+                }),
       ),
     );
   }

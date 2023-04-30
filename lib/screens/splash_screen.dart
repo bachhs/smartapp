@@ -1,12 +1,17 @@
 import 'dart:async';
 import 'dart:ui';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:task_manager/models/shop_model.dart';
 import 'package:task_manager/models/user_model.dart';
-import 'home_screen.dart';
-import 'login.dart';
+import 'home.dart';
 
 class Splash extends StatefulWidget {
+  final String current_email;
+  final String current_shop;
+  Splash(this.current_email, this.current_shop);
   @override
   _SplashState createState() => _SplashState();
 }
@@ -14,6 +19,7 @@ class Splash extends StatefulWidget {
 class _SplashState extends State<Splash> {
   UserModel user =
       UserModel(email: "", password: "", role: "", name: "", id: "");
+
   @override
   // ignore: must_call_super
   void initState() {
@@ -21,7 +27,10 @@ class _SplashState extends State<Splash> {
     Timer(
         Duration(seconds: 1),
         () => Navigator.push(
-            context, MaterialPageRoute(builder: (_) => Login(user))));
+            context,
+            MaterialPageRoute(
+                builder: (_) =>
+                    Home(widget.current_email, widget.current_shop))));
   }
 
   Widget build(BuildContext context) {

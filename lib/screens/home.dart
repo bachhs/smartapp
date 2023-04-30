@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:task_manager/models/shop_model.dart';
 import 'package:task_manager/models/user_model.dart';
 import 'package:task_manager/screens/home_screen.dart';
@@ -94,6 +95,28 @@ class _HomeState extends State<Home> {
     }
   }
 
+  Future<bool> _onWillPop() async {
+    return showDialog<bool>(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text('Bạn có muốn thoát ứng dụng?'),
+              actions: <Widget>[
+                TextButton(
+                  child: Text('Không'),
+                  onPressed: () => Navigator.of(context).pop(false),
+                ),
+                TextButton(
+                  child: Text('Có'),
+                  onPressed: () => Navigator.of(context).pop(true),
+                ),
+              ],
+            );
+          },
+        ) ??
+        false;
+  }
+
   // List<Widget> list = [
   //   HomeScreen(),
   // ];
@@ -101,19 +124,22 @@ class _HomeState extends State<Home> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Scaffold(
-          appBar: AppBar(
-            backgroundColor: Color.fromRGBO(143, 148, 251, .6),
-            title: Text(_current_shop),
-          ),
-          body: HomeScreen(widget.current_shop, widget.current_email,_current_role ),
-          drawer: MyDrawer(
-            current_email: widget.current_email,
-            current_name: _current_name,
-            list_shop: _shopList,
-            current_shop: _current_shop,
-          )),
-    );
+        debugShowCheckedModeBanner: false,
+        home: WillPopScope(
+          onWillPop: _onWillPop,
+          child: Scaffold(
+              appBar: AppBar(
+                backgroundColor: Color.fromRGBO(143, 148, 251, .6),
+                title: Text(_current_shop),
+              ),
+              body: HomeScreen(
+                  widget.current_shop, widget.current_email, _current_role),
+              drawer: MyDrawer(
+                current_email: widget.current_email,
+                current_name: _current_name,
+                list_shop: _shopList,
+                current_shop: _current_shop,
+              )),
+        ));
   }
 }
