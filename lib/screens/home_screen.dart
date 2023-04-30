@@ -264,23 +264,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     if (snapshot.docs.isNotEmpty) {
       // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
-      final doc = snapshot.docs.first;
+      //final doc = snapshot.docs.first;
+      for (var doc in snapshot.docs) {
+        DateTime dateDevice = DateTime.parse(doc['date']);
+        int resultday = dateDevice.day.compareTo(task.date.day);
+        int resultmonth = dateDevice.month.compareTo(task.date.month);
+        int resultyear = dateDevice.year.compareTo(task.date.year);
+        List<String> updatedNumber;
 
-      DateTime dateDevice = DateTime.parse(doc['date']);
-      int resultday = dateDevice.day.compareTo(task.date.day);
-      int resultmonth = dateDevice.month.compareTo(task.date.month);
-      int resultyear = dateDevice.year.compareTo(task.date.year);
-      List<String> updatedNumber;
-
-      if (resultday == 0 &&
-          resultmonth == 0 &&
-          resultyear == 0 &&
-          doc['shop'] == task.shop) {
-        final updatedNumberSell = (int.parse(doc['numberSell']) - 1).toString();
-        if (updatedNumberSell == '0') {
-          await doc.reference.delete();
-        } else {
-          await doc.reference.update({'numberSell': updatedNumberSell});
+        if (resultday == 0 &&
+            resultmonth == 0 &&
+            resultyear == 0 &&
+            doc['shop'] == task.shop) {
+          final updatedNumberSell =
+              (int.parse(doc['numberSell']) - 1).toString();
+          if (updatedNumberSell == '0') {
+            await doc.reference.delete();
+          } else {
+            await doc.reference.update({'numberSell': updatedNumberSell});
+          }
         }
         if (snapshotDevice.docs.isNotEmpty) {
           final doc = snapshotDevice.docs.first;
