@@ -728,21 +728,19 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             margin: const EdgeInsets.all(0),
-            child: widget.current_role == "admin"
-                ? IconButton(
-                    icon: Icon(Icons.money_off_csred_outlined),
-                    iconSize: 25.0,
-                    color: Colors.black,
-                    onPressed: () => {
-                      check_money_model(),
-                      Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                              builder: (_) => MoneyPage(widget.name_shop,
-                                  widget.current_email, widget.current_role)))
-                    },
-                  )
-                : SizedBox.shrink(),
+            child: IconButton(
+              icon: Icon(Icons.money_off_csred_outlined),
+              iconSize: 25.0,
+              color: Colors.black,
+              onPressed: () => {
+                check_money_model(),
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) => MoneyPage(widget.name_shop,
+                            widget.current_email, widget.current_role)))
+              },
+            ),
           ),
           Container(
             margin: const EdgeInsets.all(7.0),

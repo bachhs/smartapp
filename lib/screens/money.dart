@@ -150,52 +150,56 @@ class _MoneyState extends State<MoneyPage> {
                           ),
                         ),
               SizedBox(width: 5),
-              widget.current_shop == "Cửa hàng Quang Tèo 1"
-                  ? Text(
-                      'Tiền nhập: ${task.gia_nhap[0]}.000đ',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.blueGrey,
-                      ),
-                    )
-                  : widget.current_shop == "Cửa hàng Quang Tèo 2"
+              widget.current_role == 'admin'
+                  ? widget.current_shop == "Cửa hàng Quang Tèo 1"
                       ? Text(
-                          'Tiền nhập: ${task.gia_nhap[1]}.000đ',
+                          'Tiền nhập: ${task.gia_nhap[0]}.000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.blueGrey,
                           ),
                         )
-                      : Text(
-                          'Tiền nhập: ${task.gia_nhap[2]}.000đ',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.blueGrey,
-                          ),
-                        ),
-              widget.current_shop == "Cửa hàng Quang Tèo 1"
-                  ? Text(
-                      'Tiền lãi: ${int.parse(task.gia_ban[0]) - int.parse(task.gia_nhap[0])}.000đ',
-                      style: TextStyle(
-                        fontSize: 14.0,
-                        color: Colors.blueGrey,
-                      ),
-                    )
-                  : widget.current_shop == "Cửa hàng Quang Tèo 2"
+                      : widget.current_shop == "Cửa hàng Quang Tèo 2"
+                          ? Text(
+                              'Tiền nhập: ${task.gia_nhap[1]}.000đ',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.blueGrey,
+                              ),
+                            )
+                          : Text(
+                              'Tiền nhập: ${task.gia_nhap[2]}.000đ',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.blueGrey,
+                              ),
+                            )
+                  : SizedBox.shrink(),
+              widget.current_role == 'admin'
+                  ? widget.current_shop == "Cửa hàng Quang Tèo 1"
                       ? Text(
-                          'Tiền lãi: ${int.parse(task.gia_ban[1]) - int.parse(task.gia_nhap[1])}.000đ',
+                          'Tiền lãi: ${int.parse(task.gia_ban[0]) - int.parse(task.gia_nhap[0])}.000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.blueGrey,
                           ),
                         )
-                      : Text(
-                          'Tiền lãi: ${int.parse(task.gia_ban[2]) - int.parse(task.gia_nhap[2])}.000đ',
-                          style: TextStyle(
-                            fontSize: 14.0,
-                            color: Colors.blueGrey,
-                          ),
-                        )
+                      : widget.current_shop == "Cửa hàng Quang Tèo 2"
+                          ? Text(
+                              'Tiền lãi: ${int.parse(task.gia_ban[1]) - int.parse(task.gia_nhap[1])}.000đ',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.blueGrey,
+                              ),
+                            )
+                          : Text(
+                              'Tiền lãi: ${int.parse(task.gia_ban[2]) - int.parse(task.gia_nhap[2])}.000đ',
+                              style: TextStyle(
+                                fontSize: 14.0,
+                                color: Colors.blueGrey,
+                              ),
+                            )
+                  : SizedBox.shrink()
             ],
           ),
         ),
