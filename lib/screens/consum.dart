@@ -92,6 +92,29 @@ class _ConsumerState extends State<Consumer> {
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
               SizedBox(height: 16.0),
               Text(
+                'Tên',
+                style: TextStyle(
+                  fontSize: 18.0,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.blue,
+                ),
+              ),
+              TextFormField(
+                initialValue: _chi,
+                decoration: InputDecoration(
+                  hintText: 'Nhập tên khoản thu chi',
+                  hintStyle: TextStyle(fontSize: 18.0),
+                  prefixIcon: Icon(Icons.money),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10.0),
+                  ),
+                ),
+                onChanged: (value) {
+                  _chi = value;
+                },
+              ),
+              SizedBox(height: 16.0),
+              Text(
                 'Số tiền chi',
                 style: TextStyle(
                   fontSize: 18.0,
@@ -227,7 +250,15 @@ class _ConsumerState extends State<Consumer> {
     final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
     for (var document in allData) {
       ComsumModel task = ComsumModel.fromMap(document);
-      taskList.add(task);
+      int resultday = _selectedDate.day.compareTo(task.date.day);
+      int resultmonth = _selectedDate.month.compareTo(task.date.month);
+      int resultyear = _selectedDate.year.compareTo(task.date.year);
+      if (resultday == 0 &&
+          resultmonth == 0 &&
+          resultyear == 0 &&
+          task.shop == widget.current_shop) taskList.add(task);
+
+      // taskList.add(task);
     }
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
@@ -287,7 +318,13 @@ class _ConsumerState extends State<Consumer> {
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(width: 5),
+                Text(
+                  'Tên: ${task.name}',
+                  style: TextStyle(
+                    fontSize: 14.0,
+                    color: Colors.blueGrey,
+                  ),
+                ),
                 Text(
                   'Tiền thu: ${task.thu}.000đ',
                   style: TextStyle(
@@ -296,7 +333,6 @@ class _ConsumerState extends State<Consumer> {
                     // Head line
                   ),
                 ),
-                SizedBox(width: 5),
                 Text(
                   'Tiền chi: ${task.chi}.000đ',
                   style: TextStyle(
@@ -429,6 +465,26 @@ class _ConsumerState extends State<Consumer> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
+                        GestureDetector(
+                          onTap: () => _selectDate(context),
+                          child: Row(
+                            children: [
+                              Icon(Icons.calendar_today,
+                                  color: Colors.blueGrey),
+                              SizedBox(width: 10),
+                              Text(
+                                DateFormat('EEE, MMM d, y')
+                                    .format(_selectedDate),
+                                style: TextStyle(
+                                  fontSize: 18.0,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.blueGrey,
+                                ),
+                              ),
+                              SizedBox(width: 10),
+                            ],
+                          ),
+                        ),
                         SizedBox(height: 10),
                         TextField(
                           onChanged: (value) {

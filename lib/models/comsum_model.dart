@@ -4,10 +4,12 @@ class ComsumModel {
   String chi;
   DateTime date;
   String shop;
+  String name;
 
-  ComsumModel({this.id, this.thu, this.chi, this.date, this.shop});
+  ComsumModel({this.id, this.thu, this.chi, this.date, this.shop, this.name});
 
-  ComsumModel.withId({this.id, this.thu, this.chi, this.date, this.shop});
+  ComsumModel.withId(
+      {this.id, this.thu, this.chi, this.date, this.shop, this.name});
 
   Map<String, dynamic> toMap() {
     final map = Map<String, dynamic>();
@@ -18,6 +20,7 @@ class ComsumModel {
     map['chi'] = chi;
     map['date'] = date.toIso8601String();
     map['shop'] = shop;
+    map['name'] = name;
     return map;
   }
 
@@ -28,6 +31,7 @@ class ComsumModel {
       chi: map['chi'],
       date: DateTime.parse(map['date']),
       shop: map['shop'],
+      name: map['name'],
     );
   }
 }
