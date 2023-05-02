@@ -64,6 +64,7 @@ class _ConsumerState extends State<Consumer> {
       "date": task.date.toString(),
       "chi": task.chi,
       "shop": task.shop,
+      "name": task.name,
     };
     await FirebaseFirestore.instance
         .collection('consum')
@@ -101,7 +102,7 @@ class _ConsumerState extends State<Consumer> {
                 ),
               ),
               TextFormField(
-                initialValue: _chi,
+                initialValue: _name,
                 decoration: InputDecoration(
                   hintText: 'Nhập tên khoản thu chi',
                   hintStyle: TextStyle(fontSize: 18.0),
@@ -111,7 +112,7 @@ class _ConsumerState extends State<Consumer> {
                   ),
                 ),
                 onChanged: (value) {
-                  _chi = value;
+                  _name = value;
                 },
               ),
               SizedBox(height: 16.0),
@@ -204,6 +205,7 @@ class _ConsumerState extends State<Consumer> {
                     chi: _chi,
                     date: _selectedDate,
                     shop: widget.current_shop,
+                    name: _name,
                   );
                   sendDataFireStore(task);
                 } else {
