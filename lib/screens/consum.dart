@@ -42,6 +42,7 @@ class _ConsumerState extends State<Consumer> {
   String _thu = "";
   String _chi = "";
   String _id = "";
+  String _name = "";
   bool checkStatus = false;
 
   @override
@@ -207,11 +208,11 @@ class _ConsumerState extends State<Consumer> {
                   sendDataFireStore(task);
                 } else {
                   ComsumModel task = ComsumModel(
-                    thu: _thu,
-                    chi: _chi,
-                    date: consum.date,
-                    shop: widget.current_shop,
-                  );
+                      thu: _thu,
+                      chi: _chi,
+                      date: consum.date,
+                      shop: widget.current_shop,
+                      name: _name);
                   updateDataConsumFireStore(consum.id, task);
                 }
                 _updateTaskList();
@@ -379,6 +380,7 @@ class _ConsumerState extends State<Consumer> {
                   _thu = task.thu,
                   _chi = task.chi,
                   _id = task.id,
+                  _name = task.name,
                   checkStatus = true,
                   _showDialog_daily(context, checkStatus, task)
                 }
