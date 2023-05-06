@@ -597,7 +597,7 @@ class _HomeScreenState extends State<HomeScreen> {
             children: [
               SizedBox(width: 5),
               Text(
-                'Giá: ${task.price}.000đ',
+                'Giá: ${task.price},000đ',
                 style: TextStyle(
                   fontSize: 14.0,
                   color: Colors.deepOrange,
@@ -612,7 +612,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.blueGrey,
                 ),
               ),
-              Text('Giảm giá: ${task.giamgia}.000đ',
+              Text('Giảm giá: ${task.giamgia},000đ',
                   style: TextStyle(
                     fontSize: 14.0,
                     color: Colors.blueGrey,
@@ -789,7 +789,7 @@ class _HomeScreenState extends State<HomeScreen> {
             //     (int.parse(value) + int.parse(element)).toString());
             totalPriority = snapshot.data
                 .map((Task task) =>
-                    int.parse(task.price) * int.parse(task.numberSell) -
+                    double.parse(task.price) * int.parse(task.numberSell) -
                     int.parse(task.giamgia))
                 .reduce((total, amount) => total + amount)
                 .toString();
@@ -805,11 +805,12 @@ class _HomeScreenState extends State<HomeScreen> {
             //         (int.parse(value) + int.parse(element)).toString());
             total1 = snapshot.data
                 .map((Task task) =>
-                    int.parse(task.tprice) * int.parse(task.numberSell))
+                    double.parse(task.tprice) * int.parse(task.numberSell))
                 .reduce((total, amount) => total + amount)
                 .toString();
           // rae = task.price - task.tprice;
-          final int rate = int.parse(totalPriority) - int.parse(total1);
+          final double rate =
+              double.parse(totalPriority) - double.parse(total1);
 
           final filteredTasks = snapshot.data
               .where((task) =>
@@ -881,7 +882,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Tổng thu: ${totalPriority}.000đ',
+                                  'Tổng thu: ${totalPriority},000đ',
                                   style: TextStyle(
                                     color: Colors.blueGrey,
                                     fontSize: 16.0,
@@ -890,7 +891,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                                 if (widget.current_role == "admin")
                                   Text(
-                                    'Tổng chi: ${total1}.000đ',
+                                    'Tổng chi: ${total1},000đ',
                                     style: TextStyle(
                                       color: Colors.blueGrey,
                                       fontSize: 16.0,
@@ -899,7 +900,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 if (widget.current_role == "admin")
                                   Text(
-                                    'Lãi: ${rate}.000đ',
+                                    'Lãi: ${rate},000đ',
                                     style: TextStyle(
                                       color: Colors.blueGrey,
                                       fontSize: 16.0,
