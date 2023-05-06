@@ -329,7 +329,7 @@ class _ConsumerState extends State<Consumer> {
                   ),
                 ),
                 Text(
-                  'Tiền thu: ${task.thu}.000đ',
+                  'Tiền thu: ${task.thu},000đ',
                   style: TextStyle(
                     fontSize: 14.0,
                     color: Colors.deepOrange,
@@ -337,7 +337,7 @@ class _ConsumerState extends State<Consumer> {
                   ),
                 ),
                 Text(
-                  'Tiền chi: ${task.chi}.000đ',
+                  'Tiền chi: ${task.chi},000đ',
                   style: TextStyle(
                     fontSize: 14.0,
                     color: Colors.blueGrey,

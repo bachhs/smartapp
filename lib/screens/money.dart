@@ -125,7 +125,7 @@ class _MoneyState extends State<MoneyPage> {
               SizedBox(width: 5),
               widget.current_shop == "Cửa hàng Quang Tèo 1"
                   ? Text(
-                      'Tổng bán: ${task.gia_ban[0]}.000đ',
+                      'Tổng bán: ${task.gia_ban[0]},000đ',
                       style: TextStyle(
                         fontSize: 14.0,
                         color: Colors.deepOrange,
@@ -134,7 +134,7 @@ class _MoneyState extends State<MoneyPage> {
                     )
                   : widget.current_shop == "Cửa hàng Quang Tèo 2"
                       ? Text(
-                          'Tổng bán: ${task.gia_ban[1]}.000đ',
+                          'Tổng bán: ${task.gia_ban[1]},000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.deepOrange,
@@ -142,7 +142,7 @@ class _MoneyState extends State<MoneyPage> {
                           ),
                         )
                       : Text(
-                          'Tổng bán: ${task.gia_ban[2]}.000đ',
+                          'Tổng bán: ${task.gia_ban[2]},000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.deepOrange,
@@ -153,7 +153,7 @@ class _MoneyState extends State<MoneyPage> {
               widget.current_role == 'admin'
                   ? widget.current_shop == "Cửa hàng Quang Tèo 1"
                       ? Text(
-                          'Tiền nhập: ${task.gia_nhap[0]}.000đ',
+                          'Tiền nhập: ${task.gia_nhap[0]},000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.blueGrey,
@@ -161,14 +161,14 @@ class _MoneyState extends State<MoneyPage> {
                         )
                       : widget.current_shop == "Cửa hàng Quang Tèo 2"
                           ? Text(
-                              'Tiền nhập: ${task.gia_nhap[1]}.000đ',
+                              'Tiền nhập: ${task.gia_nhap[1]},000đ',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.blueGrey,
                               ),
                             )
                           : Text(
-                              'Tiền nhập: ${task.gia_nhap[2]}.000đ',
+                              'Tiền nhập: ${task.gia_nhap[2]},000đ',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.blueGrey,
@@ -178,7 +178,7 @@ class _MoneyState extends State<MoneyPage> {
               widget.current_role == 'admin'
                   ? widget.current_shop == "Cửa hàng Quang Tèo 1"
                       ? Text(
-                          'Tiền lãi: ${int.parse(task.gia_ban[0]) - int.parse(task.gia_nhap[0])}.000đ',
+                          'Tiền lãi: ${double.parse(task.gia_ban[0]) - double.parse(task.gia_nhap[0])},000đ',
                           style: TextStyle(
                             fontSize: 14.0,
                             color: Colors.blueGrey,
@@ -186,14 +186,14 @@ class _MoneyState extends State<MoneyPage> {
                         )
                       : widget.current_shop == "Cửa hàng Quang Tèo 2"
                           ? Text(
-                              'Tiền lãi: ${int.parse(task.gia_ban[1]) - int.parse(task.gia_nhap[1])}.000đ',
+                              'Tiền lãi: ${double.parse(task.gia_ban[1]) - double.parse(task.gia_nhap[1])},000đ',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.blueGrey,
                               ),
                             )
                           : Text(
-                              'Tiền lãi: ${int.parse(task.gia_ban[2]) - int.parse(task.gia_nhap[2])}.000đ',
+                              'Tiền lãi: ${double.parse(task.gia_ban[2]) - double.parse(task.gia_nhap[2])},000đ',
                               style: TextStyle(
                                 fontSize: 14.0,
                                 color: Colors.blueGrey,
