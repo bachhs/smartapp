@@ -382,14 +382,23 @@ class _HomeScreenState extends State<HomeScreen> {
         await docDevice.reference.update({'number': number});
       }
     }
+    var docResult = null;
     if (snapshot.docs.isNotEmpty) {
-      final doc = snapshot.docs.first;
-      if (snapshot.docs.isNotEmpty && doc['shop'] == widget.name_shop) {
+      final doc = snapshot.docs;
+      for (var i = 0; i < doc.length; i++) {
+        DateTime dateDoc = DateTime.parse(doc[i]['date']);
+        int resultday = dateDoc.day.compareTo(task.date.day);
+        int resultmonth = dateDoc.month.compareTo(task.date.month);
+        int resultyear = dateDoc.year.compareTo(task.date.year);
+        if (resultday == 0 && resultmonth == 0 && resultyear == 0) {
+          docResult = doc[i];
+        }
+      }
+      if (snapshot.docs.isNotEmpty && docResult['shop'] == widget.name_shop) {
         // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
-
         final updatedNumberSell =
-            (int.parse(doc['numberSell'] ?? '0') + 1).toString();
-        await doc.reference.update({'numberSell': updatedNumberSell});
+            (int.parse(docResult['numberSell'] ?? '0') + 1).toString();
+        await docResult.reference.update({'numberSell': updatedNumberSell});
       } else {
         // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
         String unique_id = UniqueKey().toString();
@@ -446,55 +455,78 @@ class _HomeScreenState extends State<HomeScreen> {
     // message was in flight, we want to discard the reply rather than calling
     // setState to update our non-existent appearance.
 
-    setState(() {
-      _scanBarcode = barcodeScanRes;
-      _taskDevice.then((taskList) {
-        Device matchedDevice = taskList
-            .firstWhere((task) => task.id == _scanBarcode, orElse: () => null);
-        if (matchedDevice != null) {
-          Task task = Task(
-              id: matchedDevice.id,
-              title: matchedDevice.name,
-              date: DateTime.now(),
-              price: matchedDevice.bprice,
-              status: '0',
-              shop: widget.name_shop,
-              tprice: matchedDevice.nprice,
-              numberSell: "1",
-              giamgia: "0");
-          sendDataFireStore(task).then((value) => _updateTaskList());
-          AlertDialog(
-            content: Text("Đã thêm vào giỏ hàng: " +
-                matchedDevice.name +
-                " giá:" +
-                matchedDevice.bprice),
-            actions: [
-              TextButton(
-                child: Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        } else {
-          // Nếu không có Task phù hợp, thông báo lỗi hoặc thực hiện hành động khác
-          // ...
-          AlertDialog(
-            content: Text("Không tìm thất phụ kiện!" + _scanBarcode),
-            actions: [
-              TextButton(
-                child: Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        }
-      });
+    _scanBarcode = barcodeScanRes;
+    final taskList = await _taskDevice;
+    Device matchedDevice = taskList.firstWhere(
+      (task) => task.id == _scanBarcode,
+      orElse: () => null,
+    );
+
+    if (matchedDevice != null) {
+      Task task = Task(
+        id: matchedDevice.id,
+        title: matchedDevice.name,
+        date: DateTime.now(),
+        price: matchedDevice.bprice,
+        status: '0',
+        shop: widget.name_shop,
+        tprice: matchedDevice.nprice,
+        numberSell: "1",
+        giamgia: "0",
+      );
+
+      await sendDataFireStore(task);
       _updateTaskList();
-    });
+
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  "Đã thêm vào giỏ hàng:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 8),
+                Text(matchedDevice.name),
+                SizedBox(height: 4),
+                Text("Giá: " + matchedDevice.bprice + ".000đ"),
+              ],
+            ),
+            actions: [
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            content: Text("Không tìm thấy phụ kiện! " + _scanBarcode),
+            actions: [
+              TextButton(
+                child: Text("OK"),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+            ],
+          );
+        },
+      );
+    }
+
+    _updateTaskList();
   }
 
   Future<List<MoneyModel>> getDataMoneyfireStore() async {
