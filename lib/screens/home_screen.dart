@@ -344,6 +344,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final snapshot = await FirebaseFirestore.instance
         .collection('phone')
         .where('title', isEqualTo: task.title)
+        .where('shop', isEqualTo: task.shop)
         .get();
     final snapshotDevice = await FirebaseFirestore.instance
         .collection('device')
@@ -394,11 +395,31 @@ class _HomeScreenState extends State<HomeScreen> {
           docResult = doc[i];
         }
       }
-      if (snapshot.docs.isNotEmpty && docResult['shop'] == widget.name_shop) {
-        // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
-        final updatedNumberSell =
-            (int.parse(docResult['numberSell'] ?? '0') + 1).toString();
-        await docResult.reference.update({'numberSell': updatedNumberSell});
+      if (docResult != null) {
+        if (snapshot.docs.isNotEmpty && docResult['shop'] == widget.name_shop) {
+          // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
+          final updatedNumberSell =
+              (int.parse(docResult['numberSell'] ?? '0') + 1).toString();
+          await docResult.reference.update({'numberSell': updatedNumberSell});
+        } else {
+          // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
+          String unique_id = UniqueKey().toString();
+          Map<String, String> todoList = {
+            "id": unique_id,
+            "title": task.title,
+            "date": task.date.toString(),
+            "price": task.price,
+            "status": task.status,
+            "shop": task.shop,
+            "tprice": task.tprice,
+            "numberSell": task.numberSell,
+            "giamgia": "0"
+          };
+          await FirebaseFirestore.instance
+              .collection('phone')
+              .doc(unique_id)
+              .set(todoList);
+        }
       } else {
         // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
         String unique_id = UniqueKey().toString();
