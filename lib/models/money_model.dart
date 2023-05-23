@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class MoneyModel {
   String id;
   List<String> gia_nhap;
@@ -15,7 +17,7 @@ class MoneyModel {
     }
     map['gia_nhap'] = gia_nhap;
     map['gia_ban'] = gia_ban;
-    map['date'] = date.toIso8601String();
+    map['date'] = Timestamp.fromDate(date);
     return map;
   }
 
@@ -24,7 +26,7 @@ class MoneyModel {
       id: map['id'],
       gia_nhap: List<String>.from(map['gia_nhap']),
       gia_ban: List<String>.from(map['gia_ban']),
-      date: DateTime.parse(map['date']),
+      date: map['date'].toDate(),
     );
   }
 }

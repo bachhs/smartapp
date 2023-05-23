@@ -101,24 +101,57 @@ class _HomeScreenState extends State<HomeScreen> {
     List<Task> taskList = [];
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('phone');
-    // Get docs from collection reference
-    QuerySnapshot querySnapshot = await collectionRef.get();
-    // Get data from docs and convert map to List
-    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    for (var document in allData) {
-      Task task = Task.fromMap(document);
-      int resultday = _selectedDate.day.compareTo(task.date.day);
-      int resultmonth = _selectedDate.month.compareTo(task.date.month);
-      int resultyear = _selectedDate.year.compareTo(task.date.year);
-      if (resultday == 0 &&
-          resultmonth == 0 &&
-          resultyear == 0 &&
-          task.shop == widget.name_shop) taskList.add(task);
-    }
-    // Check task_list is empty or not
-    taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
+
+    DateTime startDate =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    DateTime endDate = DateTime(
+        _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
+
+    QuerySnapshot querySnapshot = await collectionRef
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThan: Timestamp.fromDate(endDate))
+        .orderBy('date')
+        .get();
+
+    taskList =
+        querySnapshot.docs.map((doc) => Task.fromMap(doc.data())).toList();
+
     return taskList;
   }
+
+  // Future<List<Task>> getDataJsonfireStore() async {
+  //   List<Task> taskList = [];
+  //   CollectionReference collectionRef =
+  //       FirebaseFirestore.instance.collection('phone');
+  //   // Get docs from collection reference
+  //   QuerySnapshot querySnapshot = await collectionRef.get();
+
+  //   // for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
+  //   //   var dateFieldValue = docSnapshot['date'];
+  //   //   if (dateFieldValue is String) {
+  //   //     DateTime date = DateTime.parse(docSnapshot['date']);
+  //   //     Timestamp timestamp = Timestamp.fromDate(date);
+  //   //     await docSnapshot.reference.update({'date': timestamp});
+  //   //   }
+  //   // }
+
+  //   // Get data from docs and convert map to List
+  //   final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+  //   for (var document in allData) {
+  //     Task task = Task.fromMap(document);
+  //     int resultday = _selectedDate.day.compareTo(task.date.day);
+  //     int resultmonth = _selectedDate.month.compareTo(task.date.month);
+  //     int resultyear = _selectedDate.year.compareTo(task.date.year);
+  //     if (resultday == 0 &&
+  //         resultmonth == 0 &&
+  //         resultyear == 0 &&
+  //         task.shop == widget.name_shop) taskList.add(task);
+  //   }
+
+  //   // Check task_list is empty or not
+  //   taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
+  //   return taskList;
+  // }
 
   Future<List<Device>> getDataDeviceJsonfireStore() async {
     List<Device> taskList = [];
@@ -168,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
       todoList = await {
         "id": unique_id,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "gia_nhap": task.gia_nhap,
         "gia_ban": task.gia_ban,
       };
@@ -176,14 +209,14 @@ class _HomeScreenState extends State<HomeScreen> {
       todoList = await {
         "id": unique_id,
         "gia_nhap": task.gia_nhap,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "gia_ban": task.gia_ban,
       };
     } else {
       todoList = await {
         "id": unique_id,
         "gia_nhap": task.gia_nhap,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "gia_ban": task.gia_ban,
       };
     }
@@ -201,20 +234,32 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void check_money_model() async {
     DateTime date = DateTime.now();
-    final snapshot = await FirebaseFirestore.instance.collection('money').get();
-    List<MoneyModel> moneyModels = await snapshot.docs
-        .map((doc) => MoneyModel.fromMap(doc.data()))
-        .toList();
-    List<MoneyModel> filteredMoneyModels =
-        await moneyModels.where((moneyModel) {
-      DateTime moneyModelDate =
-          moneyModel.date; // Chuyển đổi Timestamp sang DateTime
+    // final snapshot = await FirebaseFirestore.instance.collection('money').get();
+    // List<MoneyModel> moneyModels = await snapshot.docs
+    //     .map((doc) => MoneyModel.fromMap(doc.data()))
+    //     .toList();
+    // List<MoneyModel> filteredMoneyModels =
+    //     await moneyModels.where((moneyModel) {
+    //   DateTime moneyModelDate =
+    //       moneyModel.date; // Chuyển đổi Timestamp sang DateTime
 
-      // So sánh ngày, tháng và năm của DateTime với ngày, tháng và năm của date
-      return moneyModelDate.year == date.year &&
-          moneyModelDate.month == date.month &&
-          moneyModelDate.day == date.day;
-    }).toList();
+    //   // So sánh ngày, tháng và năm của DateTime với ngày, tháng và năm của date
+    //   return moneyModelDate.year == _selectedDate.year &&
+    //       moneyModelDate.month == _selectedDate.month &&
+    //       moneyModelDate.day == _selectedDate.day;
+    // }).toList();
+
+    final QuerySnapshot snapshot = await FirebaseFirestore.instance
+        .collection('money')
+        .where('date',
+            isGreaterThanOrEqualTo: Timestamp.fromDate(_selectedDate))
+        .where('date',
+            isLessThan:
+                Timestamp.fromDate(_selectedDate.add(Duration(days: 1))))
+        .get();
+
+    List<MoneyModel> filteredMoneyModels =
+        snapshot.docs.map((doc) => MoneyModel.fromMap(doc.data())).toList();
 
     if (filteredMoneyModels.length == 0) {
       if (widget.name_shop == "Cửa hàng Quang Tèo 1") {
@@ -250,8 +295,10 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void deleteTask(Task task) async {
-    final snapshot = await FirebaseFirestore.instance
-        .collection('phone')
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('phone');
+
+    final snapshot = await collectionRef
         .where('title', isEqualTo: task.title)
         // .where('date', isEqualTo: task.date.toString())
         .where('shop', isEqualTo: task.shop)
@@ -266,7 +313,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Nếu tài liệu tồn tại, hãy cập nhật trường numberSell của tài liệu phù hợp đầu tiên
       //final doc = snapshot.docs.first;
       for (var doc in snapshot.docs) {
-        DateTime dateDevice = DateTime.parse(doc['date']);
+        DateTime dateDevice = doc['date'].toDate();
         int resultday = dateDevice.day.compareTo(task.date.day);
         int resultmonth = dateDevice.month.compareTo(task.date.month);
         int resultyear = dateDevice.year.compareTo(task.date.year);
@@ -790,8 +837,11 @@ class _HomeScreenState extends State<HomeScreen> {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                        builder: (_) => MoneyPage(widget.name_shop,
-                            widget.current_email, widget.current_role)))
+                        builder: (_) => MoneyPage(
+                            widget.name_shop,
+                            widget.current_email,
+                            widget.current_role,
+                            _selectedDate)))
               },
             ),
           ),

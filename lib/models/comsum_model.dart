@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class ComsumModel {
   String id;
   String thu;
@@ -18,7 +20,7 @@ class ComsumModel {
     }
     map['thu'] = thu;
     map['chi'] = chi;
-    map['date'] = date.toIso8601String();
+    map['date'] = Timestamp.fromDate(date);
     map['shop'] = shop;
     map['name'] = name;
     return map;
@@ -29,7 +31,7 @@ class ComsumModel {
       id: map['id'],
       thu: map['thu'],
       chi: map['chi'],
-      date: DateTime.parse(map['date']),
+      date: map['date'].toDate(),
       shop: map['shop'],
       name: map['name'],
     );

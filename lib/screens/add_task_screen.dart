@@ -141,22 +141,6 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     docUser.doc(idSelect).update(task.toMap());
   }
 
-  Future<List<Task>> getDataFirestore() async {
-    List<Task> taskList = [];
-    try {
-      QuerySnapshot querySnapshot =
-          await FirebaseFirestore.instance.collection('phone').get();
-      List<QueryDocumentSnapshot> documents = querySnapshot.docs;
-      for (var document in documents) {
-        Task task = Task.fromMap(document.data());
-        taskList.add(task);
-      }
-    } catch (e) {
-      print(e.toString());
-    }
-    return taskList;
-  }
-
   _submit() async {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
@@ -215,7 +199,7 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     if (snapshot.docs.isNotEmpty) {
       var doc = snapshot.docs;
       for (var i = 0; i < doc.length; i++) {
-        DateTime dateDoc = DateTime.parse(doc[i]['date']);
+        DateTime dateDoc = doc[i]['date'].toDate();
         int resultday = dateDoc.day.compareTo(task.date.day);
         int resultmonth = dateDoc.month.compareTo(task.date.month);
         int resultyear = dateDoc.year.compareTo(task.date.year);
@@ -230,10 +214,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
         await docResult.reference.update({'numberSell': updatedNumberSell});
       } else {
         String unique_id = UniqueKey().toString();
-        Map<String, String> todoList = await {
+        Map<String, dynamic> todoList = await {
           "id": unique_id,
           "title": task.title,
-          "date": task.date.toString(),
+          "date": Timestamp.fromDate(task.date),
           "price": task.price,
           "status": task.status,
           "shop": task.shop,
@@ -249,10 +233,10 @@ class _AddTaskScreenState extends State<AddTaskScreen> {
     } else {
       // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
       String unique_id = UniqueKey().toString();
-      Map<String, String> todoList = await {
+      Map<String, dynamic> todoList = await {
         "id": unique_id,
         "title": task.title,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "price": task.price,
         "status": task.status,
         "shop": task.shop,

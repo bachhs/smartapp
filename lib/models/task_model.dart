@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
 class Task {
   String id;
   String title;
@@ -37,7 +39,7 @@ class Task {
       map['id'] = id;
     }
     map['title'] = title;
-    map['date'] = date.toIso8601String();
+    map['date'] = Timestamp.fromDate(date);
     map['price'] = price;
     map['status'] = status;
     map['shop'] = shop;
@@ -51,7 +53,7 @@ class Task {
     return Task.withId(
       id: map['id'],
       title: map['title'],
-      date: DateTime.parse(map['date']),
+      date: map['date'].toDate(),
       price: map['price'],
       status: map['status'],
       shop: map['shop'],

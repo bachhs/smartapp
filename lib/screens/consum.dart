@@ -249,6 +249,22 @@ class _ConsumerState extends State<Consumer> {
         FirebaseFirestore.instance.collection('consum');
     // Get docs from collection reference
     QuerySnapshot querySnapshot = await collectionRef.get();
+
+    DateTime startDate =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    DateTime endDate = DateTime(
+        _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
+
+    // QuerySnapshot querySnapshot = await collectionRef
+    //     .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+    //     .where('date', isLessThan: Timestamp.fromDate(endDate))
+    //     .orderBy('date')
+    //     .where('shop', isEqualTo: widget.current_shop)
+    //     .get();
+    // taskList = querySnapshot.docs
+    //     .map((doc) => ComsumModel.fromMap(doc.data()))
+    //     .toList();
+
     // Get data from docs and convert map to List
     final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
     for (var document in allData) {
@@ -263,6 +279,13 @@ class _ConsumerState extends State<Consumer> {
 
       // taskList.add(task);
     }
+
+    // for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
+    //   DateTime date = docSnapshot['date'].toDate();
+    //   Timestamp timestamp = Timestamp.fromDate(date);
+    //   await docSnapshot.reference.update({'date': timestamp});
+    // }
+
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
     return taskList;
