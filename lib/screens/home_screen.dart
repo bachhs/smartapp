@@ -451,10 +451,10 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
           String unique_id = UniqueKey().toString();
-          Map<String, String> todoList = {
+          Map<String, dynamic> todoList = {
             "id": unique_id,
             "title": task.title,
-            "date": task.date.toString(),
+            "date": Timestamp.fromDate(task.date),
             "price": task.price,
             "status": task.status,
             "shop": task.shop,
@@ -470,10 +470,10 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
         String unique_id = UniqueKey().toString();
-        Map<String, String> todoList = {
+        Map<String, dynamic> todoList = {
           "id": unique_id,
           "title": task.title,
-          "date": task.date.toString(),
+          "date": Timestamp.fromDate(task.date),
           "price": task.price,
           "status": task.status,
           "shop": task.shop,
@@ -489,10 +489,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
       String unique_id = UniqueKey().toString();
-      Map<String, String> todoList = {
+      Map<String, dynamic> todoList = {
         "id": unique_id,
         "title": task.title,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "price": task.price,
         "status": task.status,
         "shop": task.shop,
