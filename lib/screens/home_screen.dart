@@ -71,7 +71,6 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedDate = picked;
       });
     }
-    _updateTaskList();
   }
 
   void saveCSV() async {
@@ -99,6 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<List<Task>> getDataJsonfireStore() async {
     List<Task> taskList = [];
+    List<Task> data = [];
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('phone');
 
@@ -111,12 +111,17 @@ class _HomeScreenState extends State<HomeScreen> {
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
         .where('date', isLessThan: Timestamp.fromDate(endDate))
         .orderBy('date')
+        // .where('shop', isEqualTo: widget.name_shop)
         .get();
 
     taskList =
         querySnapshot.docs.map((doc) => Task.fromMap(doc.data())).toList();
 
-    return taskList;
+    for (var document in taskList) {
+      if (document.shop == widget.name_shop) data.add(document);
+    }
+
+    return data;
   }
 
   // Future<List<Task>> getDataJsonfireStore() async {
@@ -317,8 +322,6 @@ class _HomeScreenState extends State<HomeScreen> {
         int resultday = dateDevice.day.compareTo(task.date.day);
         int resultmonth = dateDevice.month.compareTo(task.date.month);
         int resultyear = dateDevice.year.compareTo(task.date.year);
-        List<String> updatedNumber;
-
         if (resultday == 0 &&
             resultmonth == 0 &&
             resultyear == 0 &&
@@ -341,7 +344,6 @@ class _HomeScreenState extends State<HomeScreen> {
           } else if (widget.name_shop == "Cửa hàng Quang Tèo 3") {
             numberList[2] = (int.parse(numberList[2]) + 1).toString();
           }
-
           await doc.reference.update({'number': numberList});
         }
       }
@@ -451,10 +453,10 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
           String unique_id = UniqueKey().toString();
-          Map<String, String> todoList = {
+          Map<String, dynamic> todoList = {
             "id": unique_id,
             "title": task.title,
-            "date": task.date.toString(),
+            "date": Timestamp.fromDate(task.date),
             "price": task.price,
             "status": task.status,
             "shop": task.shop,
@@ -470,10 +472,10 @@ class _HomeScreenState extends State<HomeScreen> {
       } else {
         // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
         String unique_id = UniqueKey().toString();
-        Map<String, String> todoList = {
+        Map<String, dynamic> todoList = {
           "id": unique_id,
           "title": task.title,
-          "date": task.date.toString(),
+          "date": Timestamp.fromDate(task.date),
           "price": task.price,
           "status": task.status,
           "shop": task.shop,
@@ -489,10 +491,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       // Nếu không có tài liệu nào tồn tại, hãy tạo một tài liệu mới với dữ liệu được cung cấp
       String unique_id = UniqueKey().toString();
-      Map<String, String> todoList = {
+      Map<String, dynamic> todoList = {
         "id": unique_id,
         "title": task.title,
-        "date": task.date.toString(),
+        "date": Timestamp.fromDate(task.date),
         "price": task.price,
         "status": task.status,
         "shop": task.shop,
@@ -544,7 +546,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
 
       await sendDataFireStore(task);
-      _updateTaskList();
 
       await showDialog(
         context: context,
@@ -594,7 +595,7 @@ class _HomeScreenState extends State<HomeScreen> {
       );
     }
 
-    _updateTaskList();
+    await _updateTaskList();
   }
 
   Future<List<MoneyModel>> getDataMoneyfireStore() async {
@@ -741,7 +742,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Text("Delete"),
                           onPressed: () async {
                             await deleteTask(task);
-                            _updateTaskList();
+                            await _updateTaskList();
                             Navigator.of(context).pop();
                           },
                         ),
