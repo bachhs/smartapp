@@ -254,13 +254,15 @@ class _HomeScreenState extends State<HomeScreen> {
     //       moneyModelDate.day == _selectedDate.day;
     // }).toList();
 
+    DateTime startDate =
+        DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
+    DateTime endDate = DateTime(
+        _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
+
     final QuerySnapshot snapshot = await FirebaseFirestore.instance
         .collection('money')
-        .where('date',
-            isGreaterThanOrEqualTo: Timestamp.fromDate(_selectedDate))
-        .where('date',
-            isLessThan:
-                Timestamp.fromDate(_selectedDate.add(Duration(days: 1))))
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThan: Timestamp.fromDate(endDate))
         .get();
 
     List<MoneyModel> filteredMoneyModels =
