@@ -58,10 +58,10 @@ class _ConsumerState extends State<Consumer> {
 
   Future<void> sendDataFireStore(ComsumModel task) async {
     String unique_id = UniqueKey().toString();
-    Map<String, String> todoList = await {
+    Map<String, dynamic> todoList = await {
       "id": unique_id,
       "thu": task.thu,
-      "date": task.date.toString(),
+      "date": Timestamp.fromDate(task.date),
       "chi": task.chi,
       "shop": task.shop,
       "name": task.name,
@@ -244,51 +244,57 @@ class _ConsumerState extends State<Consumer> {
 
   Future<List<ComsumModel>> getDataConsumfireStore() async {
     List<ComsumModel> taskList = [];
+    List<ComsumModel> data = [];
 
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('consum');
     // Get docs from collection reference
-    QuerySnapshot querySnapshot = await collectionRef.get();
+    // QuerySnapshot querySnapshot = await collectionRef.get();
+
+    // for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
+    //   if (docSnapshot['date'] is String) {
+    //     DateTime date = DateTime.parse(docSnapshot['date']);
+    //     Timestamp timestamp = Timestamp.fromDate(date);
+    //     await docSnapshot.reference.update({'date': timestamp});
+    //   }
+    // }
 
     DateTime startDate =
         DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
     DateTime endDate = DateTime(
         _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
 
-    // QuerySnapshot querySnapshot = await collectionRef
-    //     .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-    //     .where('date', isLessThan: Timestamp.fromDate(endDate))
-    //     .orderBy('date')
-    //     .where('shop', isEqualTo: widget.current_shop)
-    //     .get();
-    // taskList = querySnapshot.docs
-    //     .map((doc) => ComsumModel.fromMap(doc.data()))
-    //     .toList();
+    QuerySnapshot querySnapshot = await collectionRef
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+        .where('date', isLessThan: Timestamp.fromDate(endDate))
+        .orderBy('date')
+        // .where('shop', isEqualTo: widget.current_shop)
+        .get();
+    taskList = querySnapshot.docs
+        .map((doc) => ComsumModel.fromMap(doc.data()))
+        .toList();
 
     // Get data from docs and convert map to List
-    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    for (var document in allData) {
-      ComsumModel task = ComsumModel.fromMap(document);
-      int resultday = _selectedDate.day.compareTo(task.date.day);
-      int resultmonth = _selectedDate.month.compareTo(task.date.month);
-      int resultyear = _selectedDate.year.compareTo(task.date.year);
-      if (resultday == 0 &&
-          resultmonth == 0 &&
-          resultyear == 0 &&
-          task.shop == widget.current_shop) taskList.add(task);
+    // final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
+    // for (var document in allData) {
+    //   ComsumModel task = ComsumModel.fromMap(document);
+    //   int resultday = _selectedDate.day.compareTo(task.date.day);
+    //   int resultmonth = _selectedDate.month.compareTo(task.date.month);
+    //   int resultyear = _selectedDate.year.compareTo(task.date.year);
+    //   if (resultday == 0 &&
+    //       resultmonth == 0 &&
+    //       resultyear == 0 &&
+    //       task.shop == widget.current_shop) taskList.add(task);
 
-      // taskList.add(task);
-    }
-
-    // for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
-    //   DateTime date = docSnapshot['date'].toDate();
-    //   Timestamp timestamp = Timestamp.fromDate(date);
-    //   await docSnapshot.reference.update({'date': timestamp});
-    // }
+    // taskList.add(task);
+    //}
 
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
-    return taskList;
+    for (var document in taskList) {
+      if (document.shop == widget.current_shop) data.add(document);
+    }
+    return data;
   }
 
   void deleteTask(ComsumModel task) async {
