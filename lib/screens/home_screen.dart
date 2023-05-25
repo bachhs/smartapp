@@ -438,7 +438,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (snapshot.docs.isNotEmpty) {
       final doc = snapshot.docs;
       for (var i = 0; i < doc.length; i++) {
-        DateTime dateDoc = DateTime.parse(doc[i]['date']);
+        DateTime dateDoc = doc[i]['date'].toDate();
         int resultday = dateDoc.day.compareTo(task.date.day);
         int resultmonth = dateDoc.month.compareTo(task.date.month);
         int resultyear = dateDoc.year.compareTo(task.date.year);
