@@ -18,7 +18,7 @@ import 'package:task_manager/screens/settings_screen.dart';
 import 'qr_scan.dart';
 import 'package:flutter_barcode_scanner/flutter_barcode_scanner.dart';
 import 'package:connectivity/connectivity.dart';
-import 'package:csv/csv.dart';
+// import 'package:csv/csv.dart';
 // import 'package:toast/toast.dart';
 import 'dart:async';
 
@@ -73,28 +73,28 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  void saveCSV() async {
-    List<Device> devices = await getDataDeviceJsonfireStore();
-    List<List<dynamic>> rows = [];
+  // void saveCSV() async {
+  //   List<Device> devices = await getDataDeviceJsonfireStore();
+  //   List<List<dynamic>> rows = [];
 
-    // Thêm hàng tiêu đề
-    rows.add(['id', 'name']);
+  //   // Thêm hàng tiêu đề
+  //   rows.add(['id', 'name']);
 
-    // Thêm các hàng dữ liệu
-    devices.forEach((device) {
-      rows.add([device.id, device.name]);
-    });
-    Directory documentsDirectory = await getApplicationDocumentsDirectory();
-    String dir = (await getExternalStorageDirectory()).path;
-    try {
-      // Write data to CSV file
-      File csvFile = File('${dir}/devices.csv');
-      String csv = const ListToCsvConverter().convert(rows);
-      await csvFile.writeAsString(csv);
-    } catch (e) {
-      print('Error writing CSV file: $e');
-    }
-  }
+  //   // Thêm các hàng dữ liệu
+  //   devices.forEach((device) {
+  //     rows.add([device.id, device.name]);
+  //   });
+  //   Directory documentsDirectory = await getApplicationDocumentsDirectory();
+  //   String dir = (await getExternalStorageDirectory()).path;
+  //   try {
+  //     // Write data to CSV file
+  //     File csvFile = File('${dir}/devices.csv');
+  //     String csv = const ListToCsvConverter().convert(rows);
+  //     await csvFile.writeAsString(csv);
+  //   } catch (e) {
+  //     print('Error writing CSV file: $e');
+  //   }
+  // }
 
   Future<List<Task>> getDataJsonfireStore() async {
     List<Task> taskList = [];
