@@ -357,7 +357,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //     .delete();
   }
 
-  _updateTaskList() {
+  void _updateTaskList() {
     setState(() {
       _shopList = getShopfireStore();
       _taskList = getDataJsonfireStore();
@@ -801,13 +801,13 @@ class _HomeScreenState extends State<HomeScreen> {
         leading: IconButton(
             icon: Icon(
               Icons.phone_android,
-              color: Color.fromRGBO(143, 148, 251, .6),
+              color: Color.fromRGBO(143, 148, 251, 1),
             ),
             onPressed: null),
         title: Text(
           "Home",
           style: TextStyle(
-              color: Color.fromRGBO(143, 148, 251, .6),
+              color: Color.fromRGBO(143, 148, 251, 1),
               fontSize: 25.0,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.7,

@@ -236,7 +236,7 @@ class _SettingsState extends State<SettingsScreen> {
         label: Text(
           'Thêm phụ kiện',
           style: TextStyle(
-              color: Color.fromRGBO(143, 148, 251, .6),
+              color: Color.fromRGBO(143, 148, 251, 1),
               fontSize: 20.0,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.7,
@@ -261,13 +261,13 @@ class _SettingsState extends State<SettingsScreen> {
         leading: IconButton(
             icon: Icon(
               Icons.arrow_back_ios,
-              color: Color.fromRGBO(143, 148, 251, .6),
+              color: Color.fromRGBO(143, 148, 251, 1),
             ),
             onPressed: () => Navigator.pop(context)),
         title: Text(
           widget.current_shop,
           style: TextStyle(
-              color: Color.fromRGBO(143, 148, 251, .6),
+              color: Color.fromRGBO(143, 148, 251, 1),
               fontSize: 25.0,
               fontWeight: FontWeight.bold,
               letterSpacing: -0.7,

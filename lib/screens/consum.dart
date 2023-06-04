@@ -44,6 +44,12 @@ class _ConsumerState extends State<Consumer> {
   String _id = "";
   String _name = "";
   bool checkStatus = false;
+  List<ComsumModel> _filteredData = [];
+  List<ComsumModel> _monthDataList = [];
+  List<ComsumModel> _taskListData = [];
+  bool isDay = true;
+  double existingGiaNhap = 0.0;
+  double existingGiaBan = 0.0;
 
   @override
   void initState() {
@@ -70,6 +76,73 @@ class _ConsumerState extends State<Consumer> {
         .collection('consum')
         .doc(unique_id)
         .set(todoList);
+  }
+
+  List<ComsumModel> sum_money_month(List<ComsumModel> filteredData) {
+    Map<String, ComsumModel> monthDataMap = {};
+    List<ComsumModel> monthDataList = [];
+    for (ComsumModel t in filteredData) {
+      String monthKey = '${t.date.year}-${t.date.month}';
+      if (monthDataMap.containsKey(monthKey)) {
+        ComsumModel existingMonthData = monthDataMap[monthKey];
+
+        // Tính tổng gia_nhap và gia_ban cho tháng hiện tại
+
+        if (existingMonthData.chi == "") {
+          existingGiaNhap = 0;
+        } else {
+          existingGiaNhap = double.parse(existingMonthData.chi);
+        }
+        // double existingGiaNhap = double.parse(existingMonthData.gia_nhap[i]);
+        if (existingMonthData.thu == "") {
+          existingGiaBan = 0;
+        } else {
+          existingGiaBan = double.parse(existingMonthData.thu);
+        }
+        if (t.chi == "") {
+          t.chi = "0";
+        } else {
+          t.chi = t.chi;
+        }
+        double giaNhap = double.parse(t.chi);
+        if (t.thu == "") {
+          t.thu = "0";
+        } else {
+          t.thu = t.thu;
+        }
+        double giaBan = double.parse(t.thu);
+
+        existingMonthData.chi = (existingGiaNhap + giaNhap).toStringAsFixed(2);
+        existingMonthData.thu = (existingGiaBan + giaBan).toStringAsFixed(2);
+      } else {
+        // Khởi tạo một bản ghi mới cho tháng hiện tại
+        ComsumModel newMonthData = ComsumModel(
+          id: monthKey,
+          chi: t.chi,
+          thu: t.thu,
+          date: DateTime(t.date.year, t.date.month),
+        );
+        monthDataMap[monthKey] = newMonthData;
+      }
+    }
+    monthDataMap.forEach((key, value) {
+      monthDataList.add(value);
+    });
+    return monthDataList;
+  }
+
+  void updateFilteredData(bool isDay) {
+    if (!isDay) {
+      _filteredData = _monthDataList
+          .where((ComsumModel task) =>
+              task.date.month.toString().contains(_searchQuery))
+          .toList();
+    } else {
+      _filteredData = _taskListData
+          .where((ComsumModel task) =>
+              task.date.day.toString().contains(_searchQuery))
+          .toList();
+    }
   }
 
   void _showDialog_daily(
@@ -244,7 +317,9 @@ class _ConsumerState extends State<Consumer> {
 
   Future<List<ComsumModel>> getDataConsumfireStore() async {
     List<ComsumModel> taskList = [];
-    List<ComsumModel> data = [];
+    List<ComsumModel> taskListMonth = [];
+    List<ComsumModel> dataMonth = [];
+    List<ComsumModel> dataDay = [];
 
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('consum');
@@ -264,13 +339,30 @@ class _ConsumerState extends State<Consumer> {
     DateTime endDate = DateTime(
         _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
 
+    // Month
+    DateTime startMonth = DateTime(_selectedDate.year, _selectedDate.month, 1);
+    DateTime endMonth =
+        DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+
     QuerySnapshot querySnapshot = await collectionRef
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
         .where('date', isLessThan: Timestamp.fromDate(endDate))
         .orderBy('date')
         // .where('shop', isEqualTo: widget.current_shop)
         .get();
+
+    QuerySnapshot querySnapshotMonth = await collectionRef
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startMonth))
+        .where('date', isLessThan: Timestamp.fromDate(endMonth))
+        .orderBy('date')
+        // .where('shop', isEqualTo: widget.current_shop)
+        .get();
+
     taskList = querySnapshot.docs
+        .map((doc) => ComsumModel.fromMap(doc.data()))
+        .toList();
+
+    taskListMonth = querySnapshotMonth.docs
         .map((doc) => ComsumModel.fromMap(doc.data()))
         .toList();
 
@@ -292,9 +384,16 @@ class _ConsumerState extends State<Consumer> {
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
     for (var document in taskList) {
-      if (document.shop == widget.current_shop) data.add(document);
+      if (document.shop == widget.current_shop) dataDay.add(document);
     }
-    return data;
+    //Month
+    for (var document in taskListMonth) {
+      if (document.shop == widget.current_shop) dataMonth.add(document);
+    }
+    _monthDataList = await sum_money_month(dataMonth);
+    _filteredData = await dataDay;
+    _taskListData = await dataDay;
+    return dataDay;
   }
 
   void deleteTask(ComsumModel task) async {
@@ -317,6 +416,7 @@ class _ConsumerState extends State<Consumer> {
   Future<void> _pullRefresh() async {
     Duration(seconds: 1);
     await _updateTaskList();
+    isDay = true;
   }
 
   @override
@@ -429,128 +529,188 @@ class _ConsumerState extends State<Consumer> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //drawer: MyDrawer(),
-      floatingActionButton: FloatingActionButton.extended(
-        label: Text(
-          'Thêm quản lý chi tiêu',
-          style: TextStyle(
-              color: Color.fromRGBO(143, 148, 251, .6),
-              fontSize: 20.0,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.7,
-              fontFamily: 'Audiowide'),
+        //drawer: MyDrawer(),
+        floatingActionButton: FloatingActionButton.extended(
+          label: Text(
+            'Thêm quản lý chi tiêu',
+            style: TextStyle(
+                color: Color.fromRGBO(143, 148, 251, 1),
+                fontSize: 20.0,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.7,
+                fontFamily: 'Audiowide'),
+          ),
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          icon: Icon(Icons.add_outlined),
+          onPressed: () => {
+            _thu = "",
+            _chi = "",
+            checkStatus = false,
+            _showDialog_daily(context, checkStatus, default_consum)
+          },
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        icon: Icon(Icons.add_outlined),
-        onPressed: () => {
-          _thu = "",
-          _chi = "",
-          checkStatus = false,
-          _showDialog_daily(context, checkStatus, default_consum)
-        },
-      ),
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        leading: IconButton(
-            icon: Icon(
-              Icons.arrow_back_ios,
-              color: Color.fromRGBO(143, 148, 251, .6),
-            ),
-            onPressed: () => Navigator.pop(context)),
-        title: Text(
-          widget.current_shop,
-          style: TextStyle(
-              color: Color.fromRGBO(143, 148, 251, .6),
-              fontSize: 25.0,
-              fontWeight: FontWeight.bold,
-              letterSpacing: -0.7,
-              fontFamily: 'Audiowide'),
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          leading: IconButton(
+              icon: Icon(
+                Icons.arrow_back_ios,
+                color: Color.fromRGBO(143, 148, 251, 1),
+              ),
+              onPressed: () => Navigator.pop(context)),
+          title: Text(
+            widget.current_shop,
+            style: TextStyle(
+                color: Color.fromRGBO(143, 148, 251, 1),
+                fontSize: 25.0,
+                fontWeight: FontWeight.bold,
+                letterSpacing: -0.7,
+                fontFamily: 'Audiowide'),
+          ),
+          centerTitle: false,
+          elevation: 0,
+          actions: [],
         ),
-        centerTitle: false,
-        elevation: 0,
-        actions: [],
-      ),
-      body: FutureBuilder(
-        future: _taskList,
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-          final List<ComsumModel> filteredData = snapshot.data
-              .where((ComsumModel task) =>
-                  task.date.day.toString().contains(_searchQuery))
-              .where((ComsumModel task) =>
-                  task.shop.compareTo(widget.current_shop) == 0)
-              .toList();
-
-          return RefreshIndicator(
-            child: ListView.builder(
-              padding: EdgeInsets.symmetric(vertical: 0.0),
-              itemCount: 1 + filteredData.length,
-              itemBuilder: (BuildContext context, int index) {
-                if (index == 0) {
-                  return Padding(
-                    padding:
-                        EdgeInsets.symmetric(horizontal: 0.0, vertical: 0.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        GestureDetector(
-                          onTap: () => _selectDate(context),
-                          child: Row(
-                            children: [
-                              Icon(Icons.calendar_today,
-                                  color: Colors.blueGrey),
-                              SizedBox(width: 10),
-                              Text(
-                                DateFormat('EEE, MMM d, y')
-                                    .format(_selectedDate),
-                                style: TextStyle(
-                                  fontSize: 18.0,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.blueGrey,
-                                ),
-                              ),
-                              SizedBox(width: 10),
-                            ],
-                          ),
-                        ),
-                        SizedBox(height: 10),
-                        TextField(
-                          onChanged: (value) {
+        body: Column(
+          children: [
+            SizedBox(height: 10),
+            Container(
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(143, 148, 251, 1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 5,
+                  ),
+                ),
+                padding: EdgeInsets.all(10),
+                child: Text(
+                  'Tiền thu chi sửa máy',
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )),
+            SizedBox(height: 10),
+            Padding(
+                padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 10.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Checkbox(
+                          value: isDay,
+                          onChanged: (bool value) {
                             setState(() {
-                              _searchQuery = value;
+                              isDay = value;
+                              updateFilteredData(isDay);
                             });
                           },
-                          decoration: InputDecoration(
-                            hintText: 'Tìm ngày ...',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10.0),
-                              borderSide: BorderSide.none,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(Icons.search, color: Colors.grey),
-                              onPressed: null,
-                            ),
-                          ),
                         ),
-                        SizedBox(height: 10),
+                        Text(
+                          'Ngày',
+                          style: TextStyle(fontSize: 16),
+                        ),
+                        SizedBox(width: 30),
+                        Checkbox(
+                          value: !isDay,
+                          onChanged: (bool value) {
+                            setState(() {
+                              isDay = !value;
+                              updateFilteredData(isDay);
+                            });
+                          },
+                        ),
+                        Text(
+                          'Tháng',
+                          style: TextStyle(fontSize: 16),
+                        ),
                       ],
                     ),
-                  );
-                }
+                  ],
+                )),
+            Expanded(
+              child: FutureBuilder(
+                future: _taskList,
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  }
 
-                return _buildTask(filteredData[index - 1], index);
-              },
-            ),
-            onRefresh: _pullRefresh,
-          );
-        },
-      ),
-      // drawer: MyDrawer(),
-    );
+                  return RefreshIndicator(
+                    child: ListView.builder(
+                      padding: EdgeInsets.symmetric(vertical: 0.0),
+                      itemCount: 1 + _filteredData.length,
+                      itemBuilder: (BuildContext context, int index) {
+                        if (index == 0) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(
+                                horizontal: 0.0, vertical: 0.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: <Widget>[
+                                GestureDetector(
+                                  onTap: () => _selectDate(context),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.calendar_today,
+                                          color: Colors.blueGrey),
+                                      SizedBox(width: 10),
+                                      Text(
+                                        DateFormat('EEE, MMM d, y')
+                                            .format(_selectedDate),
+                                        style: TextStyle(
+                                          fontSize: 18.0,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.blueGrey,
+                                        ),
+                                      ),
+                                      SizedBox(width: 10),
+                                    ],
+                                  ),
+                                ),
+                                // SizedBox(height: 10),
+                                // TextField(
+                                //   onChanged: (value) {
+                                //     setState(() {
+                                //       _searchQuery = value;
+                                //     });
+                                //   },
+                                //   decoration: InputDecoration(
+                                //     hintText: 'Tìm ngày ...',
+                                //     border: OutlineInputBorder(
+                                //       borderRadius: BorderRadius.circular(10.0),
+                                //       borderSide: BorderSide.none,
+                                //     ),
+                                //     suffixIcon: IconButton(
+                                //       icon: Icon(Icons.search,
+                                //           color: Colors.grey),
+                                //       onPressed: null,
+                                //     ),
+                                //   ),
+                                // ),
+                                //SizedBox(height: 10),
+                              ],
+                            ),
+                          );
+                        }
+
+                        return _buildTask(_filteredData[index - 1], index);
+                      },
+                    ),
+                    onRefresh: _pullRefresh,
+                  );
+                },
+              ),
+            )
+          ],
+        )
+        // drawer: MyDrawer(),
+        );
   }
 }

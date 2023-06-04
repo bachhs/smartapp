@@ -375,13 +375,13 @@ class _MoneyState extends State<MoneyPage> {
           leading: IconButton(
               icon: Icon(
                 Icons.arrow_back_ios,
-                color: Color.fromRGBO(143, 148, 251, .6),
+                color: Color.fromRGBO(143, 148, 251, 1),
               ),
               onPressed: () => Navigator.pop(context)),
           title: Text(
             widget.current_shop,
             style: TextStyle(
-                color: Color.fromRGBO(143, 148, 251, .6),
+                color: Color.fromRGBO(143, 148, 251, 1),
                 fontSize: 25.0,
                 fontWeight: FontWeight.bold,
                 letterSpacing: -0.7,
@@ -393,6 +393,26 @@ class _MoneyState extends State<MoneyPage> {
         ),
         body: Column(
           children: [
+            SizedBox(height: 10),
+            Container(
+                decoration: BoxDecoration(
+                  color: Color.fromRGBO(143, 148, 251, 1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: Colors.white,
+                    width: 5,
+                  ),
+                ),
+                padding: EdgeInsets.all(10),
+                child: Text(
+                  'Tổng tiền bán phụ kiện',
+                  style: TextStyle(
+                    fontSize: 25,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                )),
+            SizedBox(height: 10),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 0.0, vertical: 10.0),
               child: Row(
