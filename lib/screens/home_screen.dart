@@ -70,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
         _selectedDate = picked;
       });
     }
+    await _updateTaskList();
   }
 
   // void saveCSV() async {
@@ -603,24 +604,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
     }
-  }
-
-  Future<List<MoneyModel>> getDataMoneyfireStore() async {
-    List<MoneyModel> taskList = [];
-
-    CollectionReference collectionRef =
-        FirebaseFirestore.instance.collection('money');
-    // Get docs from collection reference
-    QuerySnapshot querySnapshot = await collectionRef.get();
-    // Get data from docs and convert map to List
-    final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    for (var document in allData) {
-      MoneyModel task = MoneyModel.fromMap(document);
-      taskList.add(task);
-    }
-    // Check task_list is empty or not
-    taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
-    return taskList;
   }
 
   void _showDialog(BuildContext context, Task task) {
