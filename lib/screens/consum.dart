@@ -131,8 +131,9 @@ class _ConsumerState extends State<Consumer> {
     return monthDataList;
   }
 
-  void updateFilteredData(bool isDay) {
+  void updateFilteredData(bool isDay) async {
     if (!isDay) {
+      await _updateTaskListMonth();
       _filteredData = _monthDataList
           .where((ComsumModel task) =>
               task.date.month.toString().contains(_searchQuery))
@@ -317,22 +318,10 @@ class _ConsumerState extends State<Consumer> {
 
   Future<List<ComsumModel>> getDataConsumfireStore() async {
     List<ComsumModel> taskList = [];
-    List<ComsumModel> taskListMonth = [];
-    List<ComsumModel> dataMonth = [];
     List<ComsumModel> dataDay = [];
 
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('consum');
-    // Get docs from collection reference
-    // QuerySnapshot querySnapshot = await collectionRef.get();
-
-    // for (QueryDocumentSnapshot docSnapshot in querySnapshot.docs) {
-    //   if (docSnapshot['date'] is String) {
-    //     DateTime date = DateTime.parse(docSnapshot['date']);
-    //     Timestamp timestamp = Timestamp.fromDate(date);
-    //     await docSnapshot.reference.update({'date': timestamp});
-    //   }
-    // }
 
     DateTime startDate =
         DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
@@ -340,60 +329,57 @@ class _ConsumerState extends State<Consumer> {
         _selectedDate.year, _selectedDate.month, _selectedDate.day + 1);
 
     // Month
-    DateTime startMonth = DateTime(_selectedDate.year, _selectedDate.month, 1);
-    DateTime endMonth =
-        DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
-
-    QuerySnapshot querySnapshot = await collectionRef
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
-        .where('date', isLessThan: Timestamp.fromDate(endDate))
-        .orderBy('date')
-        // .where('shop', isEqualTo: widget.current_shop)
-        .get();
-
-    QuerySnapshot querySnapshotMonth = await collectionRef
-        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startMonth))
-        .where('date', isLessThan: Timestamp.fromDate(endMonth))
-        .orderBy('date')
-        // .where('shop', isEqualTo: widget.current_shop)
-        .get();
-
-    taskList = querySnapshot.docs
-        .map((doc) => ComsumModel.fromMap(doc.data()))
-        .toList();
-
-    taskListMonth = querySnapshotMonth.docs
-        .map((doc) => ComsumModel.fromMap(doc.data()))
-        .toList();
-
-    // Get data from docs and convert map to List
-    // final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
-    // for (var document in allData) {
-    //   ComsumModel task = ComsumModel.fromMap(document);
-    //   int resultday = _selectedDate.day.compareTo(task.date.day);
-    //   int resultmonth = _selectedDate.month.compareTo(task.date.month);
-    //   int resultyear = _selectedDate.year.compareTo(task.date.year);
-    //   if (resultday == 0 &&
-    //       resultmonth == 0 &&
-    //       resultyear == 0 &&
-    //       task.shop == widget.current_shop) taskList.add(task);
-
-    // taskList.add(task);
-    //}
-
+    if (isDay) {
+      QuerySnapshot querySnapshot = await collectionRef
+          .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
+          .where('date', isLessThan: Timestamp.fromDate(endDate))
+          .orderBy('date')
+          // .where('shop', isEqualTo: widget.current_shop)
+          .get();
+      taskList = querySnapshot.docs
+          .map((doc) => ComsumModel.fromMap(doc.data()))
+          .toList();
+    }
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
     for (var document in taskList) {
       if (document.shop == widget.current_shop) dataDay.add(document);
     }
     //Month
+    _filteredData = await dataDay;
+    _taskListData = await dataDay;
+    return dataDay;
+  }
+
+  Future<List<ComsumModel>> getDataConsumfireStoreMonth() async {
+    List<ComsumModel> taskListMonth = [];
+    List<ComsumModel> dataMonth = [];
+
+    CollectionReference collectionRef =
+        FirebaseFirestore.instance.collection('consum');
+
+    // Month
+    DateTime startMonth = DateTime(_selectedDate.year, _selectedDate.month, 1);
+    DateTime endMonth =
+        DateTime(_selectedDate.year, _selectedDate.month + 1, 1);
+
+    // Check task_list is empty or not
+    QuerySnapshot querySnapshotMonth = await collectionRef
+        .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startMonth))
+        .where('date', isLessThan: Timestamp.fromDate(endMonth))
+        .orderBy('date')
+        // .where('shop', isEqualTo: widget.current_shop)
+        .get();
+    taskListMonth = querySnapshotMonth.docs
+        .map((doc) => ComsumModel.fromMap(doc.data()))
+        .toList();
+
+    //Month
     for (var document in taskListMonth) {
       if (document.shop == widget.current_shop) dataMonth.add(document);
     }
     _monthDataList = await sum_money_month(dataMonth);
-    _filteredData = await dataDay;
-    _taskListData = await dataDay;
-    return dataDay;
+    return _monthDataList;
   }
 
   void deleteTask(ComsumModel task) async {
@@ -406,6 +392,13 @@ class _ConsumerState extends State<Consumer> {
   _updateTaskList() {
     setState(() {
       _taskList = getDataConsumfireStore();
+    });
+  }
+
+  _updateTaskListMonth() async {
+    List newDataList = await getDataConsumfireStoreMonth();
+    setState(() {
+      _monthDataList = newDataList;
     });
   }
 

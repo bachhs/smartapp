@@ -55,7 +55,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     _updateTaskList();
-    _updateMoneyList();
     super.initState();
   }
 
@@ -111,14 +110,14 @@ class _HomeScreenState extends State<HomeScreen> {
         .where('date', isGreaterThanOrEqualTo: Timestamp.fromDate(startDate))
         .where('date', isLessThan: Timestamp.fromDate(endDate))
         .orderBy('date')
-        // .where('shop', isEqualTo: widget.name_shop)
         .get();
 
-    taskList =
-        querySnapshot.docs.map((doc) => Task.fromMap(doc.data())).toList();
+    taskList = await querySnapshot.docs
+        .map((doc) => Task.fromMap(doc.data()))
+        .toList();
 
     for (var document in taskList) {
-      if (document.shop == widget.name_shop) data.add(document);
+      if (document.shop == widget.name_shop) await data.add(document);
     }
 
     return data;
@@ -158,13 +157,14 @@ class _HomeScreenState extends State<HomeScreen> {
   //   return taskList;
   // }
 
-  Future<List<Device>> getDataDeviceJsonfireStore() async {
+  Future<List<Device>> getDataDeviceJsonfireStore(String id) async {
     List<Device> taskList = [];
 
     CollectionReference collectionRef =
         FirebaseFirestore.instance.collection('device');
     // Get docs from collection reference
-    QuerySnapshot querySnapshot = await collectionRef.get();
+    QuerySnapshot querySnapshot =
+        await collectionRef.where('id', isEqualTo: id).get();
     // Get data from docs and convert map to List
     final allData = querySnapshot.docs.map((doc) => doc.data()).toList();
     for (var document in allData) {
@@ -361,7 +361,6 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       _shopList = getShopfireStore();
       _taskList = getDataJsonfireStore();
-      _taskDevice = getDataDeviceJsonfireStore();
       for (var i = 0; i < data.length; i++) {
         // add the data to the _taskList
         _taskList.then((value) => value.add(data[i]));
@@ -369,6 +368,12 @@ class _HomeScreenState extends State<HomeScreen> {
         _taskList.then((value) =>
             value.sort((taskA, taskB) => taskA.date.compareTo(taskB.date)));
       }
+    });
+  }
+
+  void _updateDeviceList(String id) {
+    setState(() {
+      _taskDevice = getDataDeviceJsonfireStore(id);
     });
   }
 
@@ -529,6 +534,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     _scanBarcode = barcodeScanRes;
     final taskList = await _taskDevice;
+    _updateDeviceList(_scanBarcode);
     Device matchedDevice = taskList.firstWhere(
       (task) => task.id == _scanBarcode,
       orElse: () => null,
@@ -578,6 +584,7 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         },
       );
+      await _updateTaskList();
     } else {
       await showDialog(
         context: context,
@@ -596,8 +603,6 @@ class _HomeScreenState extends State<HomeScreen> {
         },
       );
     }
-
-    await _updateTaskList();
   }
 
   Future<List<MoneyModel>> getDataMoneyfireStore() async {
@@ -616,12 +621,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Check task_list is empty or not
     taskList.sort((taskA, taskB) => taskA.date.compareTo(taskB.date));
     return taskList;
-  }
-
-  void _updateMoneyList() {
-    setState(() {
-      _moneyList = getDataMoneyfireStore();
-    });
   }
 
   void _showDialog(BuildContext context, Task task) {
@@ -781,21 +780,23 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       //drawer: MyDrawer(),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        child: Icon(Icons.add_outlined),
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => AddTaskScreen(
-              updateTaskList: _updateTaskList,
-              name_shop: widget.name_shop,
-              current_email: widget.current_email,
-            ),
-          ),
-        ),
-      ),
+      floatingActionButton: widget.current_role == "admin"
+          ? FloatingActionButton(
+              backgroundColor: Colors.white,
+              foregroundColor: Colors.black,
+              child: Icon(Icons.add_outlined),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => AddTaskScreen(
+                    updateTaskList: _updateTaskList,
+                    name_shop: widget.name_shop,
+                    current_email: widget.current_email,
+                  ),
+                ),
+              ),
+            )
+          : null,
       appBar: AppBar(
         backgroundColor: Colors.white,
         leading: IconButton(
